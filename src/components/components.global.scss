@@ -1,0 +1,174 @@
+.wallet-card{
+    border-radius: 20px !important;
+    box-shadow: 0px 3px 6px #00000029;
+    opacity: 1;
+    min-width: 536px;
+    min-height: 180px;
+    text-align: left;
+}
+.wallet-card-tag{
+    color: #707070;
+    font-size: 16px;
+    font-weight: bold;
+}
+.wallet-card-title{
+    color: #0A23FB;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 18px;
+}
+.wallet-card-display-flex{
+    display: flex;
+    justify-content: space-between;
+}
+.wallet-card-amount{
+    color: #0A23FB;
+    font-size: 18px;
+}
+.wallet-card-rewards{
+    color: #07D58D;
+    font-size: 18px;
+}
+.ant-select:not(.ant-select-customize-input) .ant-select-selector{
+    border: none !important;
+}
+.spacing-charts-index{
+    display: flex;
+    justify-content: space-between;
+}
+.images{
+    width: 5%;
+    height: 5%;
+    margin: auto;
+}
+.custom-selector{
+    font-size: 25px !important;
+    font-weight: bold !important;
+    color: #0A23FB !important;
+}
+.charts-maintainer{
+    padding: 40px 0px;
+}
+.spacing-wallets-index{
+    display: flex;
+    justify-content: space-around;
+}
+.chart-holder{
+    height: 55vh;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0px 3px 6px #00000029;
+}
+
+.chart-tag{
+    margin: 30px 70px;
+}
+
+.chart-selector{
+    border-bottom: 1px solid #0A23FB !important;
+}
+
+.send-button{
+    background: #000852 !important;
+    border-color: #000852 !important;
+    border-radius: 20px !important;
+    color: white !important;
+    margin: 30px 0px 0px;
+}
+.dropdown-holder{
+    margin: -10px 5px 15px 0px;
+}
+.dropdown-menu{
+    text-align: center;
+    font-weight: bold;
+    color: #707070 !important;
+    font-size: 26px;
+}
+.wallet-card-secondary-title{
+    color: #848484;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 18px;
+}
+.wallet-card-secondary-amount{
+    color: #848484;
+    font-size: 18px;
+}
+.add-wallet-card{
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    &:hover{
+        cursor: pointer; 
+    }
+}
+.add-wallet-card-text{
+    color: #A0A0A0;
+    font-size: 25px;
+}
+.ant-card-body{
+    margin: auto;
+}
+.site-card-wrapper{
+    min-height: 279px;
+}
+.history-card-date{
+    color: #707070;
+    font-size: 15px;
+}
+.history-card-id{
+    color: #000852;
+    font-size: 15px;
+    font-weight: bold;
+}
+.history-card-amount{
+    color: #07D58D;
+    font-size: 25px;
+    font-weight: bold;
+}
+.history-card-amount-lose{
+    color: #FF6767;
+    font-size: 25px;
+    font-weight: bold;
+}
+.history-card-amount-dollars{
+    color: #07D58D;
+    font-size: 15px;
+}
+.history-card-amount-dollars-lose{
+    color: #FF6767;
+    font-size: 15px;
+}
+.history-card-fee{
+    color: #000852;
+    font-size: 15px;
+}
+.history-card-method{
+    color: #07D58D;
+    font-size: 15px;
+    font-weight: bold;
+}
+.history-card-method-lose{
+    color: #FF6767;
+    font-size: 15px;
+    font-weight: bold;
+}
+.history-card-note{
+    color: #000852;
+    font-size: 15px;
+    font-weight: bold;
+}
+.staking-card-amount-dollars{
+    color: #0A23FB;
+    font-size: 15px;
+}
+.staking-card-validator{
+    color: #000852;
+    font-size: 15px;
+}
+.ant-table-thead > tr > th{
+    background-color: white !important;
+    color: #707070 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+}
