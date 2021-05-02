@@ -52,8 +52,10 @@ a:hover {
   text-decoration: none;
 }
 .site-header{
-  background: #F8F8FF !important;
+  background: #FFFFFF !important;
   padding: 0 !important;
+  display: flex;
+  justify-content: space-between;
 }
 .site-layout-side{
   background-color: #000852 !important;
@@ -101,4 +103,61 @@ a:hover {
 
 .spacing-charts-index{
   margin: 35px 0px; 
+}
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: none;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #000852;
+  margin-right: -125px;
+  border-radius: 10px;
+}
+.logo-header-holder{
+  width: 100%;
+}
+.logo-header{
+  width: 50%;
+  height: auto;
+  margin-left: 15px;
+}
+.link-holder{
+  width: 15%;
+}
+.wallet-id{
+  color: #000852;
+  font-size: 15px;
+  .ant-btn{
+    border: none !important
+  }
+
+}
+.custom-notification{
+  background-color: #000852 !important;
+  border-radius: 20px !important;
+  color: white !important;
+  font-size: 15px !important;
+  .ant-notification-notice-message{
+    color: white !important;
+    font-size: 15px !important;
+  }
+  .anticon-close{
+    color: #D9DDFF !important;
+    font-size: 25px !important;
+    font-weight: bold;
+  }
+
+  .ant-notification-close-icon{
+    color: #D9DDFF !important;
+    font-size: 25px !important;
+    font-weight: bold;
+  }
 }

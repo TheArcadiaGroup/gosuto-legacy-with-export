@@ -172,3 +172,110 @@
     font-size: 15px !important;
     font-weight: bold !important;
 }
+.modal-vault-logo{
+    display: flex;
+    justify-content: center;
+    margin: 25px auto;
+}
+.modal-title{
+    text-align: center;
+    color: #000852;
+    font-size: 25px;
+    font-weight: bold;
+    margin: 25px auto;
+}
+.modal-description{
+    text-align: center;
+    color: #707070;
+    font-size: 15px;
+    font-weight: bold;
+    margin: 25px auto;
+}
+.image-modal{
+    width: 10%;
+}
+.mnemonic-description{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.mnemonic-word{
+    margin: 10px;
+}
+.mnemonic-number{
+    color: #000852;
+    font-size: 15px;
+    font-weight: bold;
+}
+.mnemonic-tag{
+    background-color: #D9DDFF !important;
+    color: #000852 !important;
+    border-radius: 28px !important;
+    font-size: 15px;
+    font-weight: bold;
+    min-width: 80px;
+    min-height: 20px;
+    text-align: center;
+}
+.modal-input-amount{
+    width: 100% !important;
+    background-color: #D9DDFF !important;
+    color: #000852 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    border-radius: 28px !important;
+    margin: 25px auto !important;
+}
+.modal-input-address{
+    width: 100% !important;
+    background-color: #D9DDFF !important;
+    color: #000852 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    border-radius: 28px !important;
+    margin: 25px auto !important;
+}
+.modal-input-note{
+    width: 100% !important;
+    background-color: #D9DDFF !important;
+    color: #000852 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    border-radius: 28px !important;
+    margin: 25px auto !important;
+}
+.modal-input-select{
+    .ant-select-selector{
+        background-color: #D9DDFF !important;
+        color: #000852 !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
+        border-radius: 28px !important;
+    }
+    width: 100% !important;
+    margin: 25px auto !important;
+}
+.selected-tag{
+    background-color: #000852 !important;
+    border-color: #000852 !important;
+    color: white !important;
+    border-radius: 30px !important;
+    margin: 15px !important;
+    font-size: 15px !important;
+    min-width: 80px !important;
+    min-height: 40px !important;
+    text-align: center !important;
+}
+.unselected-tag{
+    background-color: #818CFC !important;
+    border-color: #818CFC !important;
+    color: white !important;
+    border-radius: 28px !important;
+    font-size: 15px;
+    min-width: 80px;
+    min-height: 40px;
+    text-align: center;
+}
+.filter-name{
+    margin-top: 10px;
+}

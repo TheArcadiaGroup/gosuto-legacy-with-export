@@ -1,54 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Tag } from 'antd';
 import HistoryCard from './components/HistoryCard';
 // styles
 import './App.global.scss';
 
+// fake data
+import fakeCards from './HistoryCards.js';
+
 const HistoryView = () => {
+  const filters = ['All', 'Sent', 'Received', 'Staking', 'Swap'];
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [cardsToDisplay, setCardsToDisplay] = useState(fakeCards);
+  const handleTagClick = (filter) => {
+    setSelectedTag(filter);
+    setCardsToDisplay(
+      filter === 'All'
+        ? fakeCards
+        : fakeCards.filter((card) => card.method === filter)
+    );
+  };
   return (
     <>
-      <HistoryCard
-        date="Apr 01, 2021 07:15:20 am (CST)"
-        fee="0.005 CSPR"
-        id="2fc5327be3b254a…d84d6540bc4bab1"
-        amount="50 CSPR from 0x89AC1479295d4b0427ED82050A86D1e3cFadc9D4"
-        amountDollars="500.51 USD"
-        method="Received"
-      />
-      <HistoryCard
-        date="Apr 01, 2021 07:15:20 am (CST)"
-        fee="0.005 CSPR"
-        id="2fc5327be3b254a…d84d6540bc4bab1"
-        amount="50 CSPR from 0x89AC1479295d4b0427ED82050A86D1e3cFadc9D4"
-        amountDollars="500.51 USD"
-        method="Staking"
-        note="Rasikh"
-      />
-      <HistoryCard
-        date="Apr 01, 2021 07:15:20 am (CST)"
-        fee="0.005 CSPR"
-        id="2fc5327be3b254a…d84d6540bc4bab1"
-        amount="50 CSPR from 0x89AC1479295d4b0427ED82050A86D1e3cFadc9D4"
-        amountDollars="500.51 USD"
-        lost
-        method="Send"
-      />
-      <HistoryCard
-        date="Apr 01, 2021 07:15:20 am (CST)"
-        fee="0.005 CSPR"
-        id="2fc5327be3b254a…d84d6540bc4bab1"
-        amount="50 CSPR from 0x89AC1479295d4b0427ED82050A86D1e3cFadc9D4"
-        amountDollars="500.51 USD"
-        lost
-        method="Swap"
-      />
-      <HistoryCard
-        date="Apr 01, 2021 07:15:20 am (CST)"
-        fee="0.005 CSPR"
-        id="2fc5327be3b254a…d84d6540bc4bab1"
-        amount="50 CSPR from 0x89AC1479295d4b0427ED82050A86D1e3cFadc9D4"
-        amountDollars="500.51 USD"
-        method="Swap"
-      />
+      {filters.map((filter, index) => (
+        <Tag
+          key={index}
+          className={filter === selectedTag ? 'selected-tag' : 'unselected-tag'}
+          color="processing"
+          onClick={() => handleTagClick(filter)}
+        >
+          <div className="filter-name">{filter}</div>
+        </Tag>
+      ))}
+      {cardsToDisplay.map((card, index) => (
+        <HistoryCard
+          key={index}
+          date={card.date}
+          fee={card.fee}
+          id={card.id}
+          amount={card.amount}
+          amountDollars={card.amountDollars}
+          method={card.method}
+          lost={card.lost === 'true'}
+        />
+      ))}
     </>
   );
 };

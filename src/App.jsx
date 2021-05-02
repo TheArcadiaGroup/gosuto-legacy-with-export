@@ -1,7 +1,8 @@
 // Packages
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Link, Route, Switch } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Select, Button, notification } from 'antd';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
   DashboardOutlined,
   WalletOutlined,
@@ -18,19 +19,81 @@ import StakingView from './StakingView';
 import SwapView from './SwapView';
 
 // logo
-import logo from '../assets/icons/gosuto-logo-wordmark.png';
+import logo from '../assets/icons/gosuto-logo.png';
+import copyLogo from '../assets/icons/copy.svg';
 // styles
 import './App.global.scss';
 
 const { Header, Content, Sider } = Layout;
+const { Option } = Select;
 function App() {
+  const [text, setText] = useState('3BHGBdM55JUR3ba4rRSYF8AispEAbJaDrS');
+  const [isCopied, setIsCopied] = useState(false);
+  const onCopyText = () => {
+    setIsCopied(true);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 1500);
+  };
+  const handleLanguageChange = (value) => {
+    console.log(`selected ${value}`);
+  };
+  const handleCurrencyChange = (value) => {
+    console.log(`selected ${value}`);
+  };
+  const openNotification = () => {
+    notification.success({
+      message: 'Copied',
+      description: 'Your ID was copied',
+      duration: 3,
+      className: 'custom-notification',
+      onClick: () => {
+        console.log('Notification Clicked!');
+      },
+    });
+  };
   return (
     <HashRouter>
       <Layout className="layout">
         <Header className="site-header">
-          <Link to="/">
-            <img src={logo} alt="Logo" />
-          </Link>
+          <div className="link-holder">
+            <Link to="/" className="logo-header-holder">
+              <img src={logo} alt="Logo" className="logo-header" />
+            </Link>
+          </div>
+          <CopyToClipboard text={text} onCopy={onCopyText}>
+            <div className="wallet-id">
+              3BHGBdM55JUR3ba4rRSYF8AispEAbJaDrS{' '}
+              <Button
+                className="copy-button"
+                onClick={() => {
+                  isCopied && openNotification();
+                }}
+              >
+                <img src={copyLogo} alt="Logo" />
+              </Button>
+            </div>
+          </CopyToClipboard>
+          <div>
+            <Select
+              defaultValue="English"
+              style={{ width: 120, height: 35, marginRight: 30 }}
+              onChange={handleLanguageChange}
+              className="chart-selector"
+            >
+              <Option value="English">English</Option>
+              <Option value="French">French</Option>
+            </Select>
+            <Select
+              defaultValue="USD"
+              style={{ width: 120, height: 35, marginRight: 30 }}
+              onChange={handleCurrencyChange}
+              className="chart-selector"
+            >
+              <Option value="USD">USD</Option>
+              <Option value="TND">TND</Option>
+            </Select>
+          </div>
         </Header>
         <Layout className="site-layout">
           <Sider className="site-layout-side">

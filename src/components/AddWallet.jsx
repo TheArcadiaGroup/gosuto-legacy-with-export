@@ -5,7 +5,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import GeneralModal from './GeneralModal';
 import './components.global.scss';
 
-const AddWallet = ({ title }) => {
+const AddWallet = ({ title, children, footer }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const showModal = () => {
     setIsModalVisible(true);
@@ -30,19 +30,16 @@ const AddWallet = ({ title }) => {
       <GeneralModal
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
-        children={
-          <div>
-            {' '}
-            <p>Some contents...</p>
-            <p>Some contents...</p>
-          </div>
-        }
+        children={children}
+        footer={footer}
       />
     </div>
   );
 };
 AddWallet.propTypes = {
   title: PropTypes.string,
+  children: PropTypes.any,
+  footer: PropTypes.any,
 };
 
 export default AddWallet;

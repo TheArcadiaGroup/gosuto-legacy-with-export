@@ -1,7 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Card, Col, Row, Button, Menu, Dropdown } from 'antd';
+import {
+  Card,
+  Col,
+  Row,
+  Button,
+  Menu,
+  Dropdown,
+  InputNumber,
+  Input,
+  Select,
+} from 'antd';
+import GeneralModal from './GeneralModal';
+
+// images
+import vault from '../../assets/icons/vault-logo.png';
+
+// styles
 import './components.global.scss';
+
+const { Option } = Select;
 
 const menu = (
   <Menu>
@@ -11,6 +29,68 @@ const menu = (
 );
 
 const Wallet = ({ tag, title, amount, secondaryTitle, secondaryAmount }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+  const onChangeAmount = (value) => {
+    console.log('changed amount', value);
+  };
+  const onChangeAddress = (value) => {
+    console.log('changed address', value);
+  };
+  const onChangeNote = (value) => {
+    console.log('changed note', value);
+  };
+  const handleSelect = (value) => {
+    console.log(`selected ${value}`);
+  };
+  const sendModalSystem = () => {
+    return (
+      <div>
+        <div className="modal-vault-logo">
+          <img src={vault} alt="vault" className="image-modal" />
+        </div>
+        <div className="modal-title">Send CSPR</div>
+        <div>
+          <div>
+            <InputNumber
+              className="modal-input-amount"
+              min={1}
+              max={10000000000}
+              placeholder="Enter Amount"
+              onChange={onChangeAmount}
+            />
+          </div>
+          <div>
+            <Input
+              className="modal-input-address"
+              placeholder="Recipient Address"
+              onChange={onChangeAddress}
+            />
+          </div>
+          <div>
+            <Input
+              className="modal-input-note"
+              placeholder="Note (optional)"
+              onChange={onChangeNote}
+            />
+          </div>
+          <div>
+            <Select
+              className="modal-input-select"
+              defaultValue="CSPRNetwork"
+              style={{ width: 120 }}
+              onChange={handleSelect}
+            >
+              <Option value="CSPRNetwork">CSPR Network</Option>
+              <Option value="CSPR">CSPR</Option>
+            </Select>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="site-card-wrapper">
       <Row gutter={16}>
@@ -31,7 +111,11 @@ const Wallet = ({ tag, title, amount, secondaryTitle, secondaryAmount }) => {
             </div>
             <div className="wallet-card-display-flex">
               <div className="wallet-card-title">{title}</div>
-              <Button type="primary" className="send-button">
+              <Button
+                type="primary"
+                className="send-button"
+                onClick={showModal}
+              >
                 Send
               </Button>
             </div>
@@ -47,6 +131,18 @@ const Wallet = ({ tag, title, amount, secondaryTitle, secondaryAmount }) => {
           </Card>
         </Col>
       </Row>
+      <GeneralModal
+        visible={isModalVisible}
+        changeVisibility={setIsModalVisible}
+        children={sendModalSystem()}
+        footer={[
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Button type="primary" className="send-button">
+              Next
+            </Button>
+          </div>,
+        ]}
+      />
     </div>
   );
 };
