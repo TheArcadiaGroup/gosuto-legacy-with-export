@@ -7,12 +7,23 @@
   width: 100%;
   height: 100%;
 }
+@font-face {
+  font-family: 'Bozon';
+  src: url('./fonts/Bozon-Regular.eot');
+  src: local('Bozon Regular'), local('Bozon-Regular'),
+      url('./fonts/Bozon-Regular.eot?#iefix') format('embedded-opentype'),
+      url('./fonts/Bozon-Regular.woff2') format('woff2'),
+      url('./fonts/Bozon-Regular.woff') format('woff'),
+      url('./fonts/Bozon-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
 body {
   position: relative;
   color: white;
   height: 100vh;
   background: '#F8F8FF';
-  font-family: sans-serif;
+  font-family: 'Bozon';
   overflow-y: hidden;
   display: flex;
   justify-content: center;
