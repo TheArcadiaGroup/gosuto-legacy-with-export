@@ -1,13 +1,13 @@
 import React from 'react';
 import { InputNumber, Select, Button } from 'antd';
-import StakingCard from './components/StakingCard';
-import StakingTable from './components/StakingTable';
-import AddWallet from './components/AddWallet';
+import StakingCard from './../components/StakingCard';
+import StakingTable from './../components/StakingTable';
+import AddWallet from './../components/AddWallet';
 
 // images
-import vault from '../assets/icons/vault-logo.png';
+import vault from '../../assets/icons/vault-logo.png';
 // styles
-import './App.global.scss';
+import './../App.global.scss';
 
 const { Option } = Select;
 

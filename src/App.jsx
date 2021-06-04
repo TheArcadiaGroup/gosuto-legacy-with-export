@@ -1,5 +1,5 @@
 // Packages
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter, Link, Route, Switch } from 'react-router-dom';
 import { Layout, Menu, Select, Button, notification } from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -13,21 +13,62 @@ import {
 
 // Pages
 import Home from './Home';
-import WalletView from './WalletView';
-import HistoryView from './HistoryView';
-import StakingView from './StakingView';
-import SwapView from './SwapView';
+import WalletView from './Views/WalletView';
+import HistoryView from './Views/HistoryView';
+import StakingView from './Views/StakingView';
+import SwapView from './Views/SwapView';
 
 // logo
 import logo from '../assets/icons/gosuto-logo.png';
 import copyLogo from '../assets/icons/copy.svg';
 // styles
 import './App.global.scss';
+import { CasperClient, CasperServiceByJsonRPC, PublicKey } from 'casper-client-sdk';
+import { mnemonicToSeed } from 'bip39';
+import { getAccountBalance } from './services/casper';
+import Datastore from 'nedb-promises';
+import PasswordView from './Views/PasswordView';
+const { remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
 function App() {
-  const [text, setText] = useState('3BHGBdM55JUR3ba4rRSYF8AispEAbJaDrS');
+  const [text, setText] = useState('');
+  const getLatestBlockInfo = async () => {
+    const casperService = new CasperServiceByJsonRPC('http://3.14.161.135:7777/rpc')
+    const latestBlock = await casperService.getLatestBlockInfo();
+    setText(latestBlock.block.header.height);
+    return latestBlock.block.header.height;
+  }
+
+  // const getAccountBalance = async () => {
+    //   const casperService = new CasperServiceByJsonRPC('http://3.14.161.135:7777/rpc');
+    //   // casperService.acco
+    //   const balance = await casperService.getAccountBalance('185c1e21cd0198ae676ea103c74871368b6ec5d28570a0df435fffdbc9146723','uref-d87deb992bb04abf149fb68bf42735f16db7ea0360ff9e9abde9eb4917b52a2c-007');
+    //   let accountHex = new CasperClient().newHdWallet(Uint8Array.from(await mnemonicToSeed('hola!'))).publicKey().toString('hex');
+    //   let wallet = PublicKey.fromHex(accountHex).toAccountHash();
+    //   wallet  = Buffer.from(wallet).toString('hex');
+    //   setText(wallet);
+
+    //   return parseInt(balance);
+    // }
+    useEffect(() => {
+
+    async function getAccountInformation() {
+      // const db = Datastore.create({
+      //   filename:`${remote.app.getPath('userData')}/todolist.db`,
+      //   timestampData:true
+      // })
+      // db.insert({
+      //   name:'x'
+      // })
+      // const t = await db.count();
+      // setText(t);
+      const accBalance = await getAccountBalance();
+      setText(accBalance);
+    }
+    getAccountInformation();
+}, [])
   const [isCopied, setIsCopied] = useState(false);
   const onCopyText = () => {
     setIsCopied(true);
@@ -63,7 +104,7 @@ function App() {
           </div>
           <CopyToClipboard text={text} onCopy={onCopyText}>
             <div className="wallet-id">
-              3BHGBdM55JUR3ba4rRSYF8AispEAbJaDrS{' '}
+              {text}{' '}
               <Button
                 className="copy-button"
                 onClick={() => {
@@ -91,7 +132,7 @@ function App() {
               className="chart-selector"
             >
               <Option value="USD">USD</Option>
-              <Option value="TND">TND</Option>
+              <Option value="EUR">EUR</Option>
             </Select>
           </div>
         </Header>
@@ -121,7 +162,8 @@ function App() {
               <Route path="/staking" component={StakingView} />
               <Route path="/history" component={HistoryView} />
               <Route path="/wallet" component={WalletView} />
-              <Route path="/" component={Home} />
+              <Route path="/" component={PasswordView} />
+              <Route path="/home" component={Home} />
             </Switch>
           </Content>
         </Layout>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Tag } from 'antd';
-import HistoryCard from './components/HistoryCard';
+import HistoryCard from '../components/HistoryCard';
 // styles
-import './App.global.scss';
+import './../App.global.scss';
 
 // fake data
-import fakeCards from './HistoryCards.js';
+import fakeCards from '../HistoryCards.js';
 
 const HistoryView = () => {
   const filters = ['All', 'Sent', 'Received', 'Staking', 'Swap'];

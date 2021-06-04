@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import WalletCard from './components/card';
 import Charts from './components/Charts';
 
@@ -7,19 +7,29 @@ import vault from '../assets/icons/vault-logo.png';
 import swapLogo from '../assets/icons/swap-button.svg';
 // styles
 import './App.global.scss';
+import { getAccountBalance } from './services/casper';
+
 
 const Home = () => {
+  const [balance, setBalance] = useState('');
+  useEffect(() => {
+    async function getAccountInformation() {
+      const accBalance = await getAccountBalance();
+      setBalance(accBalance);
+    }
+    getAccountInformation();
+}, [])
   return (
     <>
       <div className="spacing-charts-index">
         <WalletCard
           tag="Current balance"
-          title="250.5010 CSPR available"
+          title={`${balance} available`}
           amount="2507.54 USD"
         />
         <img src={vault} alt="vault" className="images" />
         <WalletCard
-          tag="Current balance"
+          tag="Current stake"
           title="250.5010 CSPR available"
           amount="2507.54 USD"
           rewards="0.5050 CSPR Rewards"

@@ -5,7 +5,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import GeneralModal from './GeneralModal';
 import './components.global.scss';
 
-const AddWallet = ({ title, children, footer }) => {
+const AddWallet = ({ title, children, footer ,customOnCancelLogic}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const showModal = () => {
     setIsModalVisible(true);
@@ -28,6 +28,7 @@ const AddWallet = ({ title, children, footer }) => {
         </Col>
       </Row>
       <GeneralModal
+      customOnCancelLogic={customOnCancelLogic}
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
         children={children}

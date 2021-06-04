@@ -1,11 +1,11 @@
 import React from 'react';
-import WalletCard from './components/card';
-import Charts from './components/Charts';
+import WalletCard from '../components/card';
+import Charts from '../components/Charts';
 
 // images
-import swapLogo from '../assets/icons/swap-button.svg';
+import swapLogo from '../../assets/icons/swap-button.svg';
 // styles
-import './App.global.scss';
+import './../App.global.scss';
 
 const SwapView = () => {
   return (

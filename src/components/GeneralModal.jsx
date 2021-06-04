@@ -2,12 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal } from 'antd';
 
-const GeneralModal = ({ visible, changeVisibility, children, footer }) => {
+const GeneralModal = ({ visible, changeVisibility, children, footer,customOnCancelLogic }) => {
   const handleOk = () => {
     changeVisibility(false);
   };
 
   const handleCancel = () => {
+    if(customOnCancelLogic){
+      customOnCancelLogic();
+    }
     changeVisibility(false);
   };
 

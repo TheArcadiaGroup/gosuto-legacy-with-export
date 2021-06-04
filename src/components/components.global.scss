@@ -5,11 +5,12 @@
     min-width: 536px;
     min-height: 180px;
     text-align: left;
-}
-.wallet-card-tag{
+  }
+  .wallet-card-tag{
     color: #707070;
     font-size: 16px;
     font-weight: bold;
+    // margin-bottom: 2rem;
 }
 .wallet-card-title{
     color: #0A23FB;
@@ -52,7 +53,10 @@
 .spacing-wallets-index{
     display: flex;
     justify-content: space-around;
+    flex-wrap:wrap;
+    align-items: flex-start;
 }
+
 .chart-holder{
     height: 55vh;
     background-color: white;
@@ -99,7 +103,7 @@
     justify-content: center;
     height: 100%;
     &:hover{
-        cursor: pointer; 
+        cursor: pointer;
     }
 }
 .add-wallet-card-text{
@@ -190,6 +194,14 @@
     font-size: 15px;
     font-weight: bold;
     margin: 25px auto;
+}
+.modal-content{
+    text-align: left;
+    color: #707070;
+    font-size: 15px;
+    font-weight: bold;
+    margin: 25px auto;
+    margin-bottom: 0px;
 }
 .image-modal{
     width: 10%;
