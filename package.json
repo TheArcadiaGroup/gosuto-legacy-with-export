@@ -1,14 +1,14 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "ElectronReact",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Fast Refresh for rapid application development",
+  "name": "gosuto-wallet",
+  "productName": "Gosuto Wallet",
+  "description": "Gosuto wallet for Casper Network",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
     "build:renderer": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.renderer.prod.babel.js",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir src",
     "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
-    "package": "rm -rf src/dist && yarn build && electron-builder build --publish never",
+    "package": "rm -rf src/dist && yarn build && electron-builder -mwl --publish never",
     "postinstall": "node -r @babel/register .erb/scripts/CheckNativeDep.js && electron-builder install-app-deps && yarn cross-env NODE_ENV=development webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.babel.js && opencollective-postinstall && yarn-deduplicate yarn.lock",
     "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
@@ -30,7 +30,7 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
+    "productName": "Gosuto",
     "appId": "org.erb.ElectronReact",
     "files": [
       "dist/",
@@ -95,8 +95,8 @@
     "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
   },
   "author": {
-    "name": "Koussay Khelil",
-    "email": "khelil.koussaye@gmail.com",
+    "name": "Arcadia",
+    "email": "rasikh@arcadiamgroup.com",
     "url": "https://electron-react-boilerplate.js.org"
   },
   "license": "MIT",
@@ -237,13 +237,20 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
+    "@ethersproject/bytes": "^5.3.0",
+    "@lapo/asn1js": "^1.2.1",
     "@nivo/core": "^0.68.0",
+    "@nivo/tooltip": "^0.70.1",
     "antd": "^4.15.3",
+    "bignumber.js": "^9.0.1",
     "bip39": "^3.0.4",
-    "casper-client-sdk": "^1.3.4",
+    "blakejs": "^1.1.0",
+    "casper-client-sdk": "^1.4.0",
+    "coingecko-api": "^1.0.10",
     "electron-debug": "^3.1.0",
     "electron-log": "^4.2.4",
     "electron-updater": "^4.3.4",
+    "ethereumjs-wallet": "^1.0.1",
     "history": "^5.0.0",
     "nedb-promises": "^4.1.5",
     "react": "^17.0.1",
@@ -253,7 +260,8 @@
     "recharts": "^2.0.9",
     "regenerator-runtime": "^0.13.5",
     "source-map-support": "^0.5.19",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "typedjson": "^1.7.0"
   },
   "devEngines": {
     "node": ">=10.x",
