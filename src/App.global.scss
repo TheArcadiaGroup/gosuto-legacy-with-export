@@ -57,6 +57,11 @@ a {
   width: fit-content;
   margin: 10px;
 }
+.ant-input::placeholder {
+  color: #a3a3a3;
+  // text-align: center;
+  padding: 10px;
+}
 
 a:hover {
   opacity: 1;
@@ -67,9 +72,13 @@ a:hover {
   padding: 0 !important;
   display: flex;
   justify-content: space-between;
+  box-shadow: 0px 3px 6px #00000029;
+  opacity: 1;
+  margin-bottom: 2px;
 }
 .site-layout-side{
   background-color: #000852 !important;
+  width: 90;
 }
 .ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub .ant-menu-item{
   background-color: #000852 !important;
@@ -107,14 +116,25 @@ a:hover {
 
 .site-layout-background {
   background: #F8F8FF !important;
-  margin: 30px;
+  // margin: 30px;
+  margin-right: 5px;
+  padding: 5%;
+  padding-top: 2%;
   overflow-x: hidden;
   overflow-y:auto ;
 }
 
 .spacing-charts-index{
-  margin: 35px 0px; 
+  margin: 35px 0px;
 }
+
+.flex-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
 /* width */
 ::-webkit-scrollbar {
   width: 5px;

@@ -2,7 +2,8 @@
     border-radius: 20px !important;
     box-shadow: 0px 3px 6px #00000029;
     opacity: 1;
-    min-width: 536px;
+    // width: 100%;
+    // min-width: 536px;
     min-height: 180px;
     text-align: left;
   }
@@ -17,6 +18,7 @@
     font-size: 30px;
     font-weight: bold;
     margin-top: 18px;
+    overflow-wrap: anywhere;
 }
 .wallet-card-display-flex{
     display: flex;
@@ -40,7 +42,7 @@
 .images{
     width: 5%;
     height: 5%;
-    margin: auto;
+    // margin: auto;
 }
 .custom-selector{
     font-size: 25px !important;
@@ -78,6 +80,12 @@
     border-radius: 20px !important;
     color: white !important;
     margin: 30px 0px 0px;
+}
+.send-button-no-mt{
+    background: #000852 !important;
+    border-color: #000852 !important;
+    border-radius: 20px !important;
+    color: white !important;
 }
 .dropdown-holder{
     margin: -10px 5px 15px 0px;
@@ -238,6 +246,7 @@
     border-radius: 28px !important;
     margin: 25px auto !important;
 }
+
 .modal-input-address{
     width: 100% !important;
     background-color: #D9DDFF !important;

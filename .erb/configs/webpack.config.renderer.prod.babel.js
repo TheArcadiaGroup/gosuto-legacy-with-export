@@ -55,6 +55,26 @@ export default merge(baseConfig, {
           'sass-loader'
         ],
       },
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+          },
+        },
+      },
+      {
+        test: /\.js?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+          },
+        },
+      },
       // WOFF Font
       {
         test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,

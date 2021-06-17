@@ -1,13 +1,13 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "electron-react-boilerplate",
-  "version": "2.3.0",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
+  "name": "gosuto-wallet",
+  "productName": "Gosuto Wallet",
+  "version": "0.0.1",
+  "description": "Gosuto wallet for Casper Network",
   "main": "./main.prod.js",
   "author": {
-    "name": "Koussay Khelil",
-    "email": "khelil.koussaye@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "The Arcadia Media Group",
+    "email": "rasikh@arcadiamgroup.com",
+    "url": "https://arcadiamgroup.com/"
   },
   "scripts": {
     "electron-rebuild": "node -r ../.erb/scripts/BabelRegister.js ../.erb/scripts/ElectronRebuild.js",

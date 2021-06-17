@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Button, InputNumber, Select } from 'antd';
 import GeneralModal from './GeneralModal';
 import './components.global.scss';
@@ -8,8 +8,26 @@ import vault from '../../assets/icons/vault-logo.png';
 
 const { Option } = Select;
 
-const StakingTable = () => {
+const StakingTable = ({delegationOperations}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [amountToDelegate, setAmountToDelegate] = useState(0)
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    if(delegationOperations.length>0){
+      let d = [];
+      delegationOperations.forEach((val,i) => {
+        d.push({
+          key:i,
+          ...val,
+          delegationRate : val.delegationRate+"%",
+          selfStake: val.selfStake.toLocaleString(),
+          stakedAmount: val.stakedAmount.toLocaleString(),
+        })
+      })
+      setData(d);
+    }
+  }, [delegationOperations])
   const showModal = () => {
     setIsModalVisible(true);
   };
@@ -18,128 +36,56 @@ const StakingTable = () => {
   };
   const onChangeAmount = (value) => {
     console.log('changed amount', value);
-  };
-  const earnModalSystem = () => {
-    return (
-      <div>
-        <div className="modal-vault-logo">
-          <img src={vault} alt="vault" className="image-modal" />
-        </div>
-        <div className="modal-title">Earn with Arcadia</div>
-        <div>
-          <div>
-            <InputNumber
-              className="modal-input-amount"
-              min={1}
-              max={10000000000}
-              placeholder="Enter Amount"
-              onChange={onChangeAmount}
-            />
-          </div>
-          <div>
-            <Select
-              className="modal-input-select"
-              defaultValue="source"
-              style={{ width: 120 }}
-              onChange={handleSelect}
-            >
-              <Option value="source">Source</Option>
-              <Option value="CSPR">CSPR</Option>
-            </Select>
-          </div>
-        </div>
-      </div>
-    );
+    setAmountToDelegate(value)
   };
   const columns = [
-    { title: 'Validators', dataIndex: 'validators', key: 'validators' },
-    { title: 'Uptime', dataIndex: 'uptime', key: 'uptime' },
-    {
-      title: 'Delegation Return',
-      dataIndex: 'delegationReturn',
-      key: 'delegationReturn',
-    },
+    { title: 'Validators', dataIndex: 'validator', key: 'validator' },
     {
       title: 'Validator Commission',
-      dataIndex: 'validatorCommission',
-      key: 'validatorCommission',
+      dataIndex: 'delegationRate',
+      key: 'delegationRate',
+      sortDirections: ['ascend', 'descend', 'ascend'],
+      sorter: (a, b) => parseFloat(a.delegationRate.replace('%','')) - parseFloat(b.delegationRate.replace('%','')),
     },
     {
-      title: 'Self-delegation',
-      dataIndex: 'selfDelegation',
-      key: 'selfDelegation',
+      title: 'Self-Stake',
+      dataIndex: 'selfStake',
+      key: 'selfStake',
+      sortDirections: ['ascend', 'descend', 'ascend'],
+      sorter: (a, b) => parseFloat(a.selfStake.replace(',','')) - parseFloat(b.selfStake.replace(',','')),
     },
-    { title: 'Voting power', dataIndex: 'votingPower', key: 'votingPower' },
+    { title: 'Validator Weight', dataIndex: 'weight', key: 'weight',
+    sortDirections: ['ascend', 'descend', 'ascend'],
+    // sorter: (a, b) => parseFloat(a.weight.replace('%','')) - parseFloat(b.weight.replace('%','')),
+   },
+    { title: 'Staked Amount', dataIndex: 'stakedAmount', key: 'stakedAmount',
+    sortDirections: ['ascend', 'descend', 'ascend'],
+    sorter: (a, b) => parseFloat(a.stakedAmount.replace(',','')) - parseFloat(b.stakedAmount.replace(',','')),
+  },
     {
       title: '',
       dataIndex: '',
       key: 'x',
       render: () => (
-        <Button type="primary" className="send-button" onClick={showModal}>
-          Delegate
+        <Button type="primary" className="send-button-no-mt" onClick={showModal}>
+          Undelegate
         </Button>
       ),
     },
   ];
 
-  const data = [
-    {
-      key: 1,
-      validators: 'Arcadia',
-      uptime: '100%',
-      delegationReturn: '40.05%',
-      validatorCommission: '5%',
-      selfDelegation: '0.01%',
-      votingPower: '0.05%',
-    },
-    {
-      key: 1,
-      validators: 'Arcadia',
-      uptime: '100%',
-      delegationReturn: '40.05%',
-      validatorCommission: '5%',
-      selfDelegation: '0.01%',
-      votingPower: '0.05%',
-    },
-    {
-      key: 1,
-      validators: 'Arcadia',
-      uptime: '100%',
-      delegationReturn: '40.05%',
-      validatorCommission: '5%',
-      selfDelegation: '0.01%',
-      votingPower: '0.05%',
-    },
-    {
-      key: 1,
-      validators: 'Arcadia',
-      uptime: '100%',
-      delegationReturn: '40.05%',
-      validatorCommission: '5%',
-      selfDelegation: '0.01%',
-      votingPower: '0.05%',
-    },
-    {
-      key: 1,
-      validators: 'Arcadia',
-      uptime: '100%',
-      delegationReturn: '40.05%',
-      validatorCommission: '5%',
-      selfDelegation: '0.01%',
-      votingPower: '0.05%',
-    },
-  ];
+
   return (
     <div>
       <Table columns={columns} dataSource={data} pagination={false} />
       <GeneralModal
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
-        children={earnModalSystem()}
+        children={'Coming soon...'}
         footer={[
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Button type="primary" className="send-button">
-              Delegate
+              Undelegate
             </Button>
           </div>,
         ]}

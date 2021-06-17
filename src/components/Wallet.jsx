@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Card,
@@ -23,31 +23,61 @@ import vault from '../../assets/icons/vault-logo.png';
 import './components.global.scss';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
+import WalletContext from '../contexts/WalletContext';
+import { transfer } from '../services/casper';
+import NetworkContext from '../contexts/NetworkContext';
 
 const { Option } = Select;
 
 
 const Wallet = ({ tag, title, amount, secondaryTitle, secondaryAmount, id,db,setShouldUpdate,shouldUpdate }) => {
+  const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
+  const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [walletDetailsModalVisible, setWalletDetailsModalVisible] = useState(false)
   const [selectedOption, setSelectedOption] = useState(-1)
-
+  const [amountToSend, setAmountToSend] = useState('2.5')
+  const [recipient, setRecipient] = useState('')
+  const [note, setNote] = useState('')
+  const [network, setNetwork] = useState('')
 const menu = (
   <Menu>
+    <Menu.Item key="-1" onClick={async () => {
+      const db = Datastore.create({
+        filename:`${remote.app.getPath('userData')}/wallets.db`,
+        timestampData:true
+      })
+      let wallet = await db.findOne({_id:id});
+      localStorage.setItem('defaultWallet',JSON.stringify(wallet))
+      setSelectedWallet(wallet)
+    }}>Set Default Wallet</Menu.Item>
     <Menu.Item key="0" onClick={() => {
       setSelectedOption(0)
       setWalletDetailsModalVisible(true)
     }}>View mnemonic</Menu.Item>
+    <Menu.Item key="2" onClick={() => {
+      setSelectedOption(3)
+      setWalletDetailsModalVisible(true)
+    }}>View Keys</Menu.Item>
     <Menu.Item key="1" onClick={() => {
       setSelectedOption(1)
       setWalletDetailsModalVisible(true)
     }}>Edit</Menu.Item>
-    <Menu.Item key="2" onClick={() => removeWallet()}>Remove</Menu.Item>
+    <Menu.Item key="3" onClick={() => removeWallet()}>Remove</Menu.Item>
   </Menu>
 );
 
 const removeWallet = async () => {
+  const defaultWallet = localStorage.getItem('defaultWallet');
+  if(defaultWallet){
+    console.log('JSON.parse(defaultWallet) = ', JSON.parse(defaultWallet))
+    console.log('id = ', id)
+    if(JSON.parse(defaultWallet)._id == id){
+      console.log('equals!!')
+      localStorage.removeItem('defaultWallet')
+    }
+  }
   await db.remove({_id:id});
   setShouldUpdate(!shouldUpdate);
 }
@@ -59,15 +89,19 @@ const removeWallet = async () => {
   };
   const onChangeAmount = (value) => {
     console.log('changed amount', value);
+    setAmountToSend(parseFloat(value))
   };
-  const onChangeAddress = (value) => {
-    console.log('changed address', value);
+  const onChangeAddress = (event) => {
+    console.log('changed address', event);
+    setRecipient(event.target.value)
   };
-  const onChangeNote = (value) => {
-    console.log('changed note', value);
+  const onChangeNote = (event) => {
+    console.log('changed note', event);
+    setNote(event.target.value)
   };
   const handleSelect = (value) => {
     console.log(`selected ${value}`);
+    setNetwork(value)
   };
   const sendModalSystem = () => {
     return (
@@ -84,6 +118,7 @@ const removeWallet = async () => {
               max={10000000000}
               placeholder="Enter Amount"
               onChange={onChangeAmount}
+              value={amountToSend}
             />
           </div>
           <div>
@@ -91,6 +126,7 @@ const removeWallet = async () => {
               className="modal-input-address"
               placeholder="Recipient Address"
               onChange={onChangeAddress}
+              value={recipient}
             />
           </div>
           <div>
@@ -98,6 +134,7 @@ const removeWallet = async () => {
               className="modal-input-note"
               placeholder="Note (optional)"
               onChange={onChangeNote}
+              value={note}
             />
           </div>
           <div>
@@ -106,15 +143,37 @@ const removeWallet = async () => {
               defaultValue="CSPRNetwork"
               style={{ width: 120 }}
               onChange={handleSelect}
+              value={network}
             >
               <Option value="CSPRNetwork">CSPR Network</Option>
               <Option value="CSPR">CSPR</Option>
             </Select>
           </div>
+          <div >
+           <Button onClick={onSendConfirm} className='send-button-no-mt' style={{margin:'auto',display:'block'}}>Next</Button>
+          </div>
         </div>
       </div>
     );
   };
+
+const sendConfirmation = () => {
+
+}
+
+const onSendConfirm = async() => {
+  console.log('selectedWallet = ', selectedWallet);
+ const result = await transfer(selectedWallet?.publicKeyUint8,selectedWallet?.privateKeyUint8,recipient,parseFloat(amountToSend)*1e9,'casper-test');
+ console.log('transfer res = ',result)
+}
+
+  const copyValue = async (valueToCopy) => {
+    await navigator.clipboard.writeText(valueToCopy);
+    notification['success']({
+      message:'Success',
+      description:'Text has been copied to clipboard.'
+    })
+  }
   const viewMnemonicModalSystem = () => {
     const [wallet, setWallet] = useState()
     const [newWalletName, setNewWalletName] = useState('')
@@ -165,12 +224,10 @@ const removeWallet = async () => {
           <img src={vault} alt="vault" className="image-modal" />
         </div>
         <div className="modal-title">{wallet.walletName}</div>
-        {wallet.mnemonic}
-        {wallet.accountHash}
         {
           selectedOption == 1 &&
           <>
-        <div>
+        <div style={{marginBottom:'15px'}}>
           <span className="modal-content">Wallet name:</span>
           <div style={{display:'flex'}}>
           <Input
@@ -183,8 +240,50 @@ const removeWallet = async () => {
         </div>
           </>
       }
+        {
+          selectedOption == 3 &&
+          <>
+         <div style={{marginBottom:'15px'}}>
+          <span className="modal-content">Public key:</span>
+          <div style={{display:'flex',marginTop:'5px'}}>
+          <Input
+          value={wallet.accountHex}
+          onChange={(e) => {setNewWalletName(e.target.value)}}
+          disabled
+          />
+          <Button onClick={() => copyValue(wallet.accountHex)} style={{marginLeft:'10px'}}>COPY</Button>
+          </div>
+
+        </div>
+        <div style={{marginBottom:'15px'}}>
+          <span className="modal-content">Account Hash:</span>
+          <div style={{display:'flex',marginTop:'5px'}}>
+          <Input
+          value={wallet.accountHash}
+          onChange={(e) => {setNewWalletName(e.target.value)}}
+          disabled
+          />
+          <Button onClick={() => copyValue(wallet.accountHash)} style={{marginLeft:'10px'}}>COPY</Button>
+          </div>
+
+        </div>
+        <div>
+          <span className="modal-content">Private key:</span>
+          <div style={{display:'flex',marginTop:'5px'}}>
+          <Input
+          value={wallet.privateKey}
+          onChange={(e) => {setNewWalletName(e.target.value)}}
+          disabled
+          />
+          <Button onClick={() => copyValue(wallet.privateKey)} style={{marginLeft:'10px'}}>COPY</Button>
+          </div>
+        </div>
+          </>
+      }
         {selectedOption == 0 &&
           <>
+          {wallet.hasMnemonic &&
+<>
         <div className="modal-description">
         DO NOT share this phrase with anyone!
         These words can be used to steal all your accounts.
@@ -199,6 +298,13 @@ const removeWallet = async () => {
             </div>
           ))}
           </div>
+</>
+          }
+          {!wallet.hasMnemonic &&
+            <div className="modal-description">
+            Unable to get mnemonic for this wallet.
+            </div>
+          }
         </>
         }
 
@@ -210,8 +316,11 @@ const removeWallet = async () => {
   return (
     <div className="site-card-wrapper">
       <Row gutter={16}>
-        <Col span={8}>
-          <Card bordered={false} className="wallet-card" style={{marginBottom:'20px'}}>
+        <Col span={24}>
+          <Card bordered={false} className="wallet-card"
+          style={selectedWallet?._id == id ? {border:'3px solid #5F24FB',borderRadius:'20px'} : {marginBottom:'20px'}}
+
+          >
             <div className="wallet-card-display-flex">
               <div className="wallet-card-tag">{tag}</div>
               <div className="dropdown-holder">

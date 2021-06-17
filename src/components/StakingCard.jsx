@@ -6,8 +6,8 @@ import './components.global.scss';
 const StakingCard = ({ tag, validator, amount, amountDollars, withdraw }) => {
   return (
     <div className="site-card-wrapper">
-      <Row gutter={16}>
-        <Col span={8}>
+      <Row >
+        <Col span={24}>
           <Card bordered={false} className="wallet-card">
             <div className="wallet-card-tag">{tag}</div>
             <div className="wallet-card-display-flex">

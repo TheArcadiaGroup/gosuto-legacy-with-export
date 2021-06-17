@@ -28,6 +28,8 @@ import { mnemonicToSeed } from 'bip39';
 import { getAccountBalance } from './services/casper';
 import Datastore from 'nedb-promises';
 import PasswordView from './Views/PasswordView';
+import WalletContext from './contexts/WalletContext';
+import NetworkContext from './contexts/NetworkContext';
 const { remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;
@@ -52,25 +54,32 @@ function App() {
 
     //   return parseInt(balance);
     // }
+  const [selectedWallet, setSelectedWallet] = useState()
+  const [selectedNetwork, setSelectedNetwork] = useState('casper')
     useEffect(() => {
 
     async function getAccountInformation() {
-      // const db = Datastore.create({
-      //   filename:`${remote.app.getPath('userData')}/todolist.db`,
-      //   timestampData:true
-      // })
-      // db.insert({
-      //   name:'x'
-      // })
-      // const t = await db.count();
-      // setText(t);
-      const accBalance = await getAccountBalance();
-      setText(accBalance);
+      const defaultWallet = localStorage.getItem('defaultWallet');
+      if(defaultWallet){
+        console.log('default wallet = ',JSON.parse(defaultWallet) );
+        setSelectedWallet(JSON.parse(defaultWallet))
+      }else{
+        const db = Datastore.create({
+          filename:`${remote.app.getPath('userData')}/wallets.db`,
+          timestampData:true
+        })
+        const wallets = await db.find({});
+        if(wallets.length>0)
+        setSelectedWallet(wallets[0]);
+      }
     }
+
     getAccountInformation();
 }, [])
   const [isCopied, setIsCopied] = useState(false);
-  const onCopyText = () => {
+  const onCopyText =async () => {
+    await navigator.clipboard.writeText(selectedWallet?.accountHex);
+    openNotification()
     setIsCopied(true);
     setTimeout(() => {
       setIsCopied(false);
@@ -79,21 +88,26 @@ function App() {
   const handleLanguageChange = (value) => {
     console.log(`selected ${value}`);
   };
+  const handleNetworkChange = (value) => {
+    console.log(`selected ${value}`);
+    setSelectedNetwork(value)
+  };
   const handleCurrencyChange = (value) => {
     console.log(`selected ${value}`);
   };
   const openNotification = () => {
     notification.success({
       message: 'Copied',
-      description: 'Your ID was copied',
+      description: 'Your address was copied',
       duration: 3,
       className: 'custom-notification',
       onClick: () => {
-        console.log('Notification Clicked!');
       },
     });
   };
   return (
+    <NetworkContext.Provider value={[selectedNetwork, setSelectedNetwork]}>
+    <WalletContext.Provider value={[selectedWallet, setSelectedWallet]}>
     <HashRouter>
       <Layout className="layout">
         <Header className="site-header">
@@ -102,6 +116,7 @@ function App() {
               <img src={logo} alt="Logo" className="logo-header" />
             </Link>
           </div>
+          {selectedWallet &&
           <CopyToClipboard text={text} onCopy={onCopyText}>
             <div className="wallet-id">
               {text}{' '}
@@ -111,11 +126,22 @@ function App() {
                   isCopied && openNotification();
                 }}
               >
+                {selectedWallet?.accountHex}
                 <img src={copyLogo} alt="Logo" />
               </Button>
             </div>
           </CopyToClipboard>
+          }
           <div>
+            <Select
+              defaultValue="casper"
+              style={{ width: 120, height: 35, marginRight: 30 }}
+              onChange={handleNetworkChange}
+              className="chart-selector"
+            >
+              <Option value="casper">Mainnet</Option>
+              <Option value="casper-test">Testnet</Option>
+            </Select>
             <Select
               defaultValue="English"
               style={{ width: 120, height: 35, marginRight: 30 }}
@@ -138,7 +164,7 @@ function App() {
         </Header>
         <Layout className="site-layout">
           <Sider className="site-layout-side">
-            <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+            <Menu theme="dark" mode="vertical-left" defaultSelectedKeys={['1']} style={{width:'90%',marginLeft:'12px',marginTop:'20px'}}>
               <Menu.Item key="1" icon={<DashboardOutlined />}>
                 <Link to="/">Dashboard</Link>
               </Menu.Item>
@@ -149,7 +175,7 @@ function App() {
                 <Link to="/history">History</Link>
               </Menu.Item>
               <Menu.Item key="4" icon={<AreaChartOutlined />}>
-                <Link to="/staking">Staking (Validator)</Link>
+                <Link to="/staking">Staking</Link>
               </Menu.Item>
               <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
@@ -162,13 +188,15 @@ function App() {
               <Route path="/staking" component={StakingView} />
               <Route path="/history" component={HistoryView} />
               <Route path="/wallet" component={WalletView} />
-              <Route path="/" component={PasswordView} />
-              <Route path="/home" component={Home} />
+              {/* <Route path="/" component={PasswordView} /> */}
+              <Route path="/" component={Home} />
             </Switch>
           </Content>
         </Layout>
       </Layout>
     </HashRouter>
+    </WalletContext.Provider>
+    </NetworkContext.Provider>
   );
 }
 

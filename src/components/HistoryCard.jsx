@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Card, Col, Row } from 'antd';
 import './components.global.scss';
+import WalletContext from '../contexts/WalletContext';
 
 const HistoryCard = ({
   date,
@@ -12,7 +13,10 @@ const HistoryCard = ({
   amountDollars,
   lost,
   note,
+  to,
+  from
 }) => {
+  const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   return (
     <div className="site-card-wrapper">
       <Row gutter={16}>
@@ -28,7 +32,7 @@ const HistoryCard = ({
                   lost ? 'history-card-amount-lose' : 'history-card-amount'
                 }
               >
-                {lost ? '-' : '+'} {amount}
+                {lost ? '-' : '+'} {amount} {method == 'Sent' ? `to ${to}` : `from ${from}`}
               </div>
               {note && <div className="history-card-note">Note: {note}</div>}
             </div>
@@ -42,10 +46,10 @@ const HistoryCard = ({
               {amountDollars}
             </div>
             <div className="wallet-card-display-flex" style={{ marginTop: 15 }}>
-              <div className="history-card-fee">
+              {/* <div className="history-card-fee">
                 <span style={{ fontWeight: 'bold' }}>Transaction fee:</span>{' '}
                 {fee}
-              </div>
+              </div> */}
               <div
                 className={
                   lost ? 'history-card-method-lose' : 'history-card-method'

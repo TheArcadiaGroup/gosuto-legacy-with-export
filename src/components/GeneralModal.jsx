@@ -20,7 +20,7 @@ const GeneralModal = ({ visible, changeVisibility, children, footer,customOnCanc
         visible={visible}
         onOk={handleOk}
         onCancel={handleCancel}
-        footer={footer && footer}
+        footer={null}
       >
         {children}
       </Modal>

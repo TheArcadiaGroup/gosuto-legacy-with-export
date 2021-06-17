@@ -5,16 +5,17 @@ import { PlusOutlined } from '@ant-design/icons';
 import GeneralModal from './GeneralModal';
 import './components.global.scss';
 
-const AddWallet = ({ title, children, footer ,customOnCancelLogic}) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+const AddWallet = ({ title, children, footer ,customOnCancelLogic,isModalVisible,setIsModalVisible}) => {
   const showModal = () => {
     setIsModalVisible(true);
   };
-
+  const [backupIsModalVisible, setBackupIsModalVisible] = useState(false)
+  isModalVisible = isModalVisible ? isModalVisible : backupIsModalVisible
+  setIsModalVisible = setIsModalVisible ? setIsModalVisible : setBackupIsModalVisible
   return (
     <div className="site-card-wrapper">
-      <Row gutter={16}>
-        <Col span={8}>
+      <Row>
+        <Col span={24}>
           <Card
             hoverable
             bordered={false}
