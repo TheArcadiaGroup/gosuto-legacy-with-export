@@ -75,6 +75,7 @@ const createWindow = async () => {
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
+      preload: path.join(__dirname,'../src/casperService.js'),
     },
   });
 
