@@ -266,7 +266,7 @@ return (
     const handleFileUpload = async () => {
       const dialog = remote.dialog;
       dialog.showOpenDialog({
-        title: 'Select the File to be uploaded',
+        title: 'Select your private key',
         defaultPath: path.join(__dirname, './services/'),
         buttonLabel: 'Upload',
         // Restricting the user to only Text Files.
@@ -276,7 +276,7 @@ return (
                 extensions: ['pem']
             }, ],
         // Specifying the File Selector Property
-        properties: ['openFile','openDirectory']
+        properties: ['openFile']
       }).then(async (file) => {
         if(!file.canceled){
           const filePath = file.filePaths[0].toString();
