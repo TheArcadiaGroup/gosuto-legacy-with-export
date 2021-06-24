@@ -135,12 +135,12 @@ function App() {
           <div>
             <Select
               defaultValue="casper"
-              style={{ width: 120, height: 35, marginRight: 30 }}
+              style={{ width: "10rem", height: 35, marginRight: 30 }}
               onChange={handleNetworkChange}
               className="chart-selector"
             >
-              <Option value="casper">Mainnet</Option>
-              <Option value="casper-test">Testnet</Option>
+              <Option value="casper">Casper Mainnet</Option>
+              <Option value="casper-test">Casper Testnet</Option>
             </Select>
             <Select
               defaultValue="English"
