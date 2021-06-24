@@ -15,8 +15,8 @@ if (
     process.platform === 'win32'
       ? electronRebuildCmd.replace(/\//g, '\\')
       : electronRebuildCmd;
-  execSync(cmd, {
-    cwd: path.join(__dirname, '../../src'),
-    stdio: 'inherit',
-  });
+  // execSync(cmd, {
+  //   cwd: path.join(__dirname, '../../src'),
+  //   stdio: 'inherit',
+  // });
 }
