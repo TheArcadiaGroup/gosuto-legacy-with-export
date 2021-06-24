@@ -1,8 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { InputNumber, Select, Button, Row, Col, notification } from 'antd';
+import {
+  InputNumber,
+  Select,
+  Button,
+  Row,
+  Col,
+  notification,
+  Spin,
+} from 'antd';
 import StakingCard from '../components/StakingCard';
 import StakingTable from '../components/StakingTable';
 import AddWallet from '../components/AddWallet';
+import TextArea from 'antd/lib/input/TextArea';
 
 // images
 import vault from '../../assets/icons/vault-logo.png';
@@ -37,8 +46,10 @@ const StakingView = () => {
   const [validatorWeight, setValidatorWeight] = useState(0);
   const [validatorRewards, setValidatorRewards] = useState(0);
   const [delegationOperations, setDelegationOperations] = useState([]);
-  const [amountToDelegate, setAmountToDelegate] = useState(0);
-  const [result, setResult] = useState('')
+  const [amountToDelegate, setAmountToDelegate] = useState(1);
+  const [stakeSuccessful, setStakeSuccessful] = useState(false);
+  const [isStakePending, setIsStakePending] = useState(false);
+  const [result, setResult] = useState('');
   const handleSelect = (value) => {
     console.log(`selected ${value}`);
     setSelectedDelegationWallet(value);
@@ -127,50 +138,102 @@ const StakingView = () => {
         <div className="modal-vault-logo">
           <img src={vault} alt="vault" className="image-modal" />
         </div>
-        <div className="modal-title">Earn with Arcadia</div>
-        <div>
-          <div>
-            <InputNumber
-              className="modal-input-amount"
-              min={1}
-              max={10000000000}
-              placeholder="Enter Amount"
-              onChange={onChangeAmount}
+        {!stakeSuccessful && (
+          <>
+            <div className="modal-title">Earn with Arcadia</div>
+            <div>
+              <div>
+                <InputNumber
+                  className="modal-input-amount"
+                  min={1}
+                  max={10000000000}
+                  placeholder="Enter Amount"
+                  onChange={onChangeAmount}
+                  value={amountToDelegate}
+                />
+              </div>
+              <div>
+                <Select
+                  className="modal-input-select"
+                  defaultValue="Source"
+                  style={{ width: 120 }}
+                  onChange={handleSelect}
+                >
+                  {wallets &&
+                    wallets.map((wallet) => {
+                      return (
+                        <Option key={wallet._id} value={wallet._id}>
+                          {wallet.walletName}
+                        </Option>
+                      );
+                    })}
+                </Select>
+              </div>
+              <div>
+                <Button
+                  onClick={onEarnConfirm}
+                  className="send-button-no-mt"
+                  style={{ margin: 'auto', display: 'block' }}
+                >
+                  {/* {path.join(__dirname,'../src/casperService.js')} */}
+                  Delegate
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        {stakeSuccessful && (
+          <>
+            <div className="modal-title">Your transaction information</div>
+            <div>
+              <span className="modal-description">Deploy hash</span>
+              <TextArea
+                type="text"
+                className="modal-input-amount"
+                style={{ padding: '13px' }}
+                value={result}
+                disabled
+              />
+              <div>
+                <Button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(result);
+                    openNotification();
+                  }}
+                  className="send-button-no-mt"
+                  style={{ margin: 'auto', display: 'block' }}
+                >
+                  {/* {path.join(__dirname,'../src/casperService.js')} */}
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        {isStakePending && (
+          <>
+            <Spin
+              style={{ margin: 'auto', display: 'block', marginTop: '20px' }}
             />
-          </div>
-          <div>
-            <Select
-              className="modal-input-select"
-              defaultValue="Source"
-              style={{ width: 120 }}
-              onChange={handleSelect}
-            >
-              {wallets &&
-                wallets.map((wallet) => {
-                  return (
-                    <Option key={wallet._id} value={wallet._id}>
-                      {wallet.walletName}
-                    </Option>
-                  );
-                })}
-            </Select>
-          </div>
-          <div>
-            <Button
-              onClick={onEarnConfirm}
-              className="send-button-no-mt"
-              style={{ margin: 'auto', display: 'block' }}
-            >
-              {/* {path.join(__dirname,'../src/casperService.js')} */}
-              Next
-            </Button>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     );
   };
 
+  const openNotification = () => {
+    notification.success({
+      message: 'Copied',
+      description: 'Deploy hash copied.',
+      duration: 3,
+      className: 'custom-notification',
+      onClick: () => {},
+    });
+  };
+
   const onEarnConfirm = async () => {
+    setIsStakePending(true);
+
     const validatorPublicKey =
       '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e';
     try {
@@ -179,8 +242,8 @@ const StakingView = () => {
         timestampData: true,
       });
       const wallet = await db.findOne({ _id: selectedDelegationWallet });
-      console.log('wallet = ',wallet)
-      console.log('selectedDelegationWallet = ',selectedDelegationWallet)
+      console.log('wallet = ', wallet);
+      console.log('selectedDelegationWallet = ', selectedDelegationWallet);
       const result = await delegate(
         wallet?.privateKeyUint8,
         validatorPublicKey,
@@ -190,11 +253,19 @@ const StakingView = () => {
       result?.data?.deploy_hash
         ? setResult(result?.data?.deploy_hash)
         : setResult(result.data);
+      setStakeSuccessful(true);
+      setIsStakePending(false);
       console.log('transfer res = ', result);
     } catch (error) {
       alert('error');
       alert(error);
     }
+  };
+
+  const customOnCancelLogic = () => {
+    setStakeSuccessful(false);
+    setResult('');
+    setIsStakePending(false);
   };
   return (
     <>
@@ -261,6 +332,7 @@ const StakingView = () => {
         </Col>
         <Col span={12}>
           <AddWallet
+            customOnCancelLogic={customOnCancelLogic}
             title="Earn with Arcadia"
             children={earnModalSystem()}
             footer={[
@@ -273,7 +345,6 @@ const StakingView = () => {
           />
         </Col>
       </Row>
-      <span style={{color:'black'}}>{result}</span>
       <StakingTable delegationOperations={delegationOperations} />
     </>
   );

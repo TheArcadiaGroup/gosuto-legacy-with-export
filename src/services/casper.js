@@ -276,7 +276,7 @@ export const getAccountHistory = async (accountHash, page, limit, network) => {
   }
 };
 
-export const transfer = async (privateKey, to, amount, network) => {
+export const transfer = async (privateKey, to, amount, network,note) => {
   try {
     // // to = '01e6c56c86ca97d7387d0c989c061ceeb205eeb04adf9ec41569292120ed9ae4a5';
     // // amount = 5697999990000;
@@ -332,6 +332,7 @@ export const transfer = async (privateKey, to, amount, network) => {
       to,
       amount,
       network,
+      note
     });
     return await new Promise((resolve) => {
       resolve({ stdout: res.deploy_hash, stderr: '' });

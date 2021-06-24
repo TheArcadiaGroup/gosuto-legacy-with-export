@@ -32,7 +32,7 @@ server.post('/transfer', async function (req, res) {
     // let amount = 5697999990000;
     // res.send(req.body)
 
-    let { privateKey, to, amount, network } = req.body;
+    let { privateKey, to, amount, network, note } = req.body;
     const ll = JSON.stringify(privateKey)
       .replace('{', '')
       .replace('}', '')
@@ -49,7 +49,7 @@ server.post('/transfer', async function (req, res) {
     // for native-transfers payment price is fixed
     const paymentAmount = 10000000000;
     // transfer_id field in the request to tag the transaction and to correlate it to your back-end storage
-    const id = 187821;
+    const id = note;
     // gas price for native transfers can be set to 1
     const gasPrice = 1;
     // time that the Deploy will remain valid for, in milliseconds, the default value is 1800000, which is 30 minutes

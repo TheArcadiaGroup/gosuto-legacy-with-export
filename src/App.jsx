@@ -177,14 +177,14 @@ function App() {
               <Menu.Item key="4" icon={<AreaChartOutlined />}>
                 <Link to="/staking">Staking</Link>
               </Menu.Item>
-              <Menu.Item key="5" icon={<SwapOutlined />}>
+              {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
-              </Menu.Item>
+              </Menu.Item> */}
             </Menu>
           </Sider>
           <Content className="site-layout-background">
             <Switch>
-              <Route path="/swap" component={SwapView} />
+              {/* <Route path="/swap" component={SwapView} /> */}
               <Route path="/staking" component={StakingView} />
               <Route path="/history" component={HistoryView} />
               <Route path="/wallet" component={WalletView} />
