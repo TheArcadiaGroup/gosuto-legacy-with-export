@@ -1,3 +1,6 @@
+import blake from 'blakejs';
+import { concat } from '@ethersproject/bytes';
+import axios from 'axios';
 import { casperDelegationContractHexCode } from '../utils/casper';
 
 const {
@@ -14,9 +17,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const cp = require('child_process');
 const CoinGecko = require('coingecko-api');
-import blake from 'blakejs';
-import { concat } from '@ethersproject/bytes';
-import axios from "axios";
+
 export const getEndpointByNetwork = (network) => {
   if (network == 'casper') {
     return 'http://18.221.174.26:7777/rpc';
@@ -181,7 +182,7 @@ export const getTotalStaked = async (network) => {
 
 export const getCasperMarketInformation = async () => {
   try {
-    let casperInformation = await new CoinGecko().coins.fetch(
+    const casperInformation = await new CoinGecko().coins.fetch(
       'casper-network',
       {}
     );
@@ -211,10 +212,10 @@ export const getUserDelegatedAmount = async (publicKey, network) => {
     const validatorsInfo = await casperService.getValidatorsInfo();
     const stakingOperations = [];
     const eraValidators = validatorsInfo.auction_state.era_validators[0];
-    const bids = validatorsInfo.auction_state.bids;
+    const { bids } = validatorsInfo.auction_state;
     let stakedAmount = 0;
     bids.forEach((bid) => {
-      let delegators = bid.bid.delegators;
+      const { delegators } = bid.bid;
       delegators.forEach((delegator) => {
         if (delegator.public_key == publicKey) {
           stakingOperations.push({
@@ -231,24 +232,51 @@ export const getUserDelegatedAmount = async (publicKey, network) => {
   } catch (error) {}
 };
 
+export const getValidatorByDeploy = async (deployHash, network) => {
+  const casperService = new CasperServiceByJsonRPC(
+    getEndpointByNetwork(network)
+  );
+  const { session } = (await casperService.getDeployInfo(deployHash)).deploy;
+  return session.ModuleBytes.args[2][1].parsed;
+};
+
 export const getAccountHistory = async (accountHash, page, limit, network) => {
   try {
     network = network == 'casper-test' ? 'testnet' : 'mainnet';
-    let url = `https://event-store-api-clarity-${network}.make.services/accounts/${accountHash}/transfers?page=${page}&limit=${limit}`;
-    let response = await fetch(url);
-    let jsonResponse = await response.json();
+    const url = `https://event-store-api-clarity-${network}.make.services/accounts/${accountHash}/transfers?page=${page}&limit=${limit}`;
+    const response = await fetch(url);
+    const jsonResponse = await response.json();
     console.log('json respone = ', jsonResponse);
-    const newData = jsonResponse.data.map((transfer) => {
+    const newData = jsonResponse.data.map(async (transfer) => {
+      if (transfer.toAccount == null) {
+        console.log('transfer to == null', transfer.deployHash);
+        const validator = await getValidatorByDeploy(
+          transfer.deployHash,
+          'casper-test'
+        );
+        console.log('validator = ', validator);
+        const newTransfer = {
+          ...transfer,
+          category: 'Staking',
+          toAccount: validator,
+        };
+        return {
+          ...newTransfer,
+          method: 'Staking'
+        };
+      }
       return {
         ...transfer,
-        method: transfer.fromAccount == accountHash ? 'Sent' : 'Received',
+        method: transfer.fromAccount === accountHash ? 'Sent' : 'Received',
       };
     });
-    return newData;
-  } catch (error) {}
+    return await Promise.all(newData);
+  } catch (error) {
+    console.log('error = ', error);
+  }
 };
 
-export const transfer = async (privateKey, to, amount, network) => {
+export const transfer = async (privateKey, to, amount, network,note) => {
   try {
     // // to = '01e6c56c86ca97d7387d0c989c061ceeb205eeb04adf9ec41569292120ed9ae4a5';
     // // amount = 5697999990000;
@@ -299,11 +327,15 @@ export const transfer = async (privateKey, to, amount, network) => {
     // const res = await new CasperServiceByJsonRPC(
     //   getEndpointByNetwork(network)
     // ).deploy(signedDeploy);
-    return await axios.post('http://localhost:3000/transfer',{
-      privateKey, to, amount, network
-    })
-    return new Promise((resolve) => {
-      resolve({stdout:res.deploy_hash,stderr:''});
+    return await axios.post('http://localhost:3000/transfer', {
+      privateKey,
+      to,
+      amount,
+      network,
+      note
+    });
+    return await new Promise((resolve) => {
+      resolve({ stdout: res.deploy_hash, stderr: '' });
     });
     // return res;
     // const path = require('path');
@@ -322,109 +354,76 @@ export const transfer = async (privateKey, to, amount, network) => {
     //   ]} ${to} ${amount} ${network}`
     // );
 
-
-
     // return { stdout, stderr };
     // exec('node src/test.js',(err,data,getter) => {
     //   console.log('data =', data)
     // })
   } catch (error) {
     return new Promise((resolve) => {
-      resolve({stdout:'nope',stderr:error});
+      resolve({ stdout: 'nope', stderr: error });
     });
   }
 };
 export const delegate = async (
-  delegatorPublicKey,
-  delegatorPrivateKey,
+  privateKey,
   validatorPublicKey,
   amountToDelegate,
   network
 ) => {
-  const client = new CasperClient(getEndpointByNetwork(network));
-  const contract = Uint8Array.from(
-    Buffer.from(casperDelegationContractHexCode, 'hex')
-  );
-  const publicKeyArray = Keys.readBase64WithPEM(
-    `-----BEGIN PUBLIC KEY-----\r\nMCowBQYDK2VwAyEAcFZSSRoBQPKFz3ELWAG4QX3q1GqiY54+I88xl49Eblg=\r\n-----END PUBLIC KEY-----\r\n`
-  );
-  const privateKeyArray = Keys.readBase64WithPEM(
-    `-----BEGIN PRIVATE KEY-----\r\nMC4CAQAwBQYDK2VwBCIEIFFJPMA//nqjCVOFb8lVgj0qS1WK4JFWfqZ9cb5Uj1BU\r\n-----END PRIVATE KEY-----\r\n`
-  );
-  const publicKey = Keys.Ed25519.parsePublicKey(publicKeyArray);
-  const privateKey = Keys.Ed25519.parsePrivateKey(privateKeyArray);
-  const keyPair = new Keys.Ed25519({
-    publicKey,
-    secretKey: Buffer.concat([privateKey, publicKey]),
+  // const client = new CasperClient(getEndpointByNetwork(network));
+  // const contract = Uint8Array.from(
+  //   Buffer.from(casperDelegationContractHexCode, 'hex')
+  // );
+  // const publicKeyArray = Keys.readBase64WithPEM(
+  //   `-----BEGIN PUBLIC KEY-----\r\nMCowBQYDK2VwAyEAcFZSSRoBQPKFz3ELWAG4QX3q1GqiY54+I88xl49Eblg=\r\n-----END PUBLIC KEY-----\r\n`
+  // );
+  // const privateKeyArray = Keys.readBase64WithPEM(
+  //   `-----BEGIN PRIVATE KEY-----\r\nMC4CAQAwBQYDK2VwBCIEIFFJPMA//nqjCVOFb8lVgj0qS1WK4JFWfqZ9cb5Uj1BU\r\n-----END PRIVATE KEY-----\r\n`
+  // );
+  // const publicKey = Keys.Ed25519.parsePublicKey(publicKeyArray);
+  // const privateKey = Keys.Ed25519.parsePrivateKey(privateKeyArray);
+  // const keyPair = new Keys.Ed25519({
+  //   publicKey,
+  //   secretKey: Buffer.concat([privateKey, publicKey]),
+  // });
+  // const deployParams = new DeployUtil.DeployParams(keyPair.publicKey, 'casper');
+  // const payment = DeployUtil.standardPayment(300000000000);
+  // const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
+  //   contract,
+  //   RuntimeArgs.fromMap({
+  //     action: CLValue.string('delegate'),
+  //     delegator: CLValue.publicKey(keyPair.publicKey),
+  //     validator: CLValue.publicKey(
+  //       PublicKey.fromHex(
+  //         '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'
+  //       )
+  //     ),
+  //     amount: CLValue.u512('3000000000000000'),
+  //   })
+  // );
+  // let deploy = DeployUtil.makeDeploy(deployParams, session, payment);
+  // const serializedBody = DeployUtil.serializeBody(
+  //   deploy.payment,
+  //   deploy.session
+  // );
+  // const bodyHash = blake.blake2b(serializedBody, null, 32);
+  // let jsonDeploy = DeployUtil.deployToJson(deploy);
+
+  // const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
+  // console.log('signed deploy = ', DeployUtil.deployToJson(signedDeploy));
+  // // console.log((JSON.stringify(DeployUtil.deployToJson(signedDeploy))))
+  // // console.log(JSON.stringify(DeployUtil.deployToJson(signedDeploy)))
+  // let res;
+  // try {
+  //   res = await client.putDeploy(signedDeploy);
+  // } catch (error) {
+  //   console.log(error);
+  // }
+  // return res;
+  return axios.post('http://localhost:3000/delegate', {
+    privateKey,
+    validatorPublicKey,
+    amountToDelegate,
+    network,
   });
-  const deployParams = new DeployUtil.DeployParams(keyPair.publicKey, 'casper');
-  const payment = DeployUtil.standardPayment(300000000000);
-  const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
-    contract,
-    RuntimeArgs.fromMap({
-      action: CLValue.string('delegate'),
-      delegator: CLValue.publicKey(keyPair.publicKey),
-      validator: CLValue.publicKey(
-        PublicKey.fromHex(
-          '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'
-        )
-      ),
-      amount: CLValue.u512('3000000000000000'),
-    })
-  );
-  let deploy = DeployUtil.makeDeploy(deployParams, session, payment);
-  const serializedBody = DeployUtil.serializeBody(
-    deploy.payment,
-    deploy.session
-  );
-  const bodyHash = blake.blake2b(serializedBody, null, 32);
-  let jsonDeploy = DeployUtil.deployToJson(deploy);
-  //   jsonDeploy.deploy.payment.ModuleBytes.args = RuntimeArgs.fromMap(
-  //     {
-  //       "amount":{
-  //         "cl_type": "U512",
-  //         "bytes": "04005ed0b2",
-  //         "parsed": "3000000000"
-  //       }
-  //     }
-  //   )
-  //   jsonDeploy.deploy.session.ModuleBytes.args = [
-  //     [
-  //         "validator",
-  //         {
-  //             "cl_type": "PublicKey",
-  //             "bytes": "01c60fe433d3a22ec5e30a8341f4bda978fa81c2b94e5a95f745723f9a019a3c31",
-  //             "parsed": "01c60fe433d3a22ec5e30a8341f4bda978fa81c2b94e5a95f745723f9a019a3c31"
-  //         }
-  //     ],
-  //     [
-  //         "amount",
-  //         {
-  //             "cl_type": "U512",
-  //             "bytes": "06006c47730a60",
-  //             "parsed": "105598000000000"
-  //         }
-  //     ],
-  //     [
-  //         "delegator",
-  //         {
-  //             "cl_type": "PublicKey",
-  //             "bytes": "0147b3cb791d161b0ee5f2f5c1321957acf4d405de2a3d7ef12b5314ae7a677196",
-  //             "parsed": "0147b3cb791d161b0ee5f2f5c1321957acf4d405de2a3d7ef12b5314ae7a677196"
-  //         }
-  //     ]
-  // ]
-  // console.log('without stringify = ', JSON.stringify(deploy))
-  // console.log('new deploy = ', JSON.stringify(DeployUtil.deployToJson(deploy)))
-  const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
-  console.log('signed deploy = ', DeployUtil.deployToJson(signedDeploy));
-  // console.log((JSON.stringify(DeployUtil.deployToJson(signedDeploy))))
-  // console.log(JSON.stringify(DeployUtil.deployToJson(signedDeploy)))
-  let res;
-  try {
-    res = await client.putDeploy(signedDeploy);
-  } catch (error) {
-    console.log(error);
-  }
-  return res;
 };

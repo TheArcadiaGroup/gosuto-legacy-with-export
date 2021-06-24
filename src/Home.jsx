@@ -81,7 +81,7 @@ const accBalance = await getAccountBalance(selectedWallet?.accountHex,selectedNe
         />
         </Col>
       </Row>
-      <Row justify="space-between" align='middle'>
+      {/* <Row justify="space-between" align='middle'>
         <Col span={9}>
         <WalletCard tag="Swap" title="0" amount="0.00 USD" selector />
         </Col>
@@ -91,7 +91,7 @@ const accBalance = await getAccountBalance(selectedWallet?.accountHex,selectedNe
         <Col span={9}>
         <WalletCard tag="Swap" title="0" amount="0.00 USD" selector />
         </Col>
-      </Row>
+      </Row> */}
       <Row justify="space-between" align='middle'>
         <Col md={24} lg={24} xl={8} xxl={4}>
         <WalletCard tag="CSPR price"

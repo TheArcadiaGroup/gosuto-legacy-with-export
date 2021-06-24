@@ -5,13 +5,22 @@ import { PlusOutlined } from '@ant-design/icons';
 import GeneralModal from './GeneralModal';
 import './components.global.scss';
 
-const AddWallet = ({ title, children, footer ,customOnCancelLogic,isModalVisible,setIsModalVisible}) => {
+const AddWallet = ({
+  title,
+  children,
+  footer,
+  customOnCancelLogic,
+  isModalVisible,
+  setIsModalVisible,
+}) => {
   const showModal = () => {
     setIsModalVisible(true);
   };
-  const [backupIsModalVisible, setBackupIsModalVisible] = useState(false)
-  isModalVisible = isModalVisible ? isModalVisible : backupIsModalVisible
-  setIsModalVisible = setIsModalVisible ? setIsModalVisible : setBackupIsModalVisible
+  const [backupIsModalVisible, setBackupIsModalVisible] = useState(false);
+  isModalVisible = isModalVisible ? isModalVisible : backupIsModalVisible;
+  setIsModalVisible = setIsModalVisible
+    ? setIsModalVisible
+    : setBackupIsModalVisible;
   return (
     <div className="site-card-wrapper">
       <Row>
@@ -29,7 +38,7 @@ const AddWallet = ({ title, children, footer ,customOnCancelLogic,isModalVisible
         </Col>
       </Row>
       <GeneralModal
-      customOnCancelLogic={customOnCancelLogic}
+        customOnCancelLogic={customOnCancelLogic}
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
         children={children}
