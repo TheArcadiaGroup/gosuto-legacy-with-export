@@ -212,7 +212,7 @@ const Wallet = ({
       parseFloat(amountToSend) * 1e9,
       'casper-test'
     );
-    setResult(result.stdout+'/n'+result.stderr)
+    result?.data?.deploy_hash ? setResult(result?.data?.deploy_hash) : setResult(result.data)
     console.log('transfer res = ', result);
     } catch (error) {
       alert('error')

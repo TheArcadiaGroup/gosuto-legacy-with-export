@@ -16,6 +16,7 @@ const cp = require('child_process');
 const CoinGecko = require('coingecko-api');
 import blake from 'blakejs';
 import { concat } from '@ethersproject/bytes';
+import axios from "axios";
 export const getEndpointByNetwork = (network) => {
   if (network == 'casper') {
     return 'http://18.221.174.26:7777/rpc';
@@ -249,8 +250,8 @@ export const getAccountHistory = async (accountHash, page, limit, network) => {
 
 export const transfer = async (privateKey, to, amount, network) => {
   try {
-    // to = '01e6c56c86ca97d7387d0c989c061ceeb205eeb04adf9ec41569292120ed9ae4a5';
-    // amount = 5697999990000;
+    // // to = '01e6c56c86ca97d7387d0c989c061ceeb205eeb04adf9ec41569292120ed9ae4a5';
+    // // amount = 5697999990000;
     // // const ll = JSON.stringify(privateKey)
     // //   .replace('{', '')
     // //   .replace('}', '')
@@ -298,28 +299,39 @@ export const transfer = async (privateKey, to, amount, network) => {
     // const res = await new CasperServiceByJsonRPC(
     //   getEndpointByNetwork(network)
     // ).deploy(signedDeploy);
+    return await axios.post('http://localhost:3000/transfer',{
+      privateKey, to, amount, network
+    })
+    return new Promise((resolve) => {
+      resolve({stdout:res.deploy_hash,stderr:''});
+    });
     // return res;
-    const path = require('path');
+    // const path = require('path');
 
-    console.log('privateKey =', privateKey);
-    let stderr = '';
-    let stdout = cp.execFileSync('node', [path.join(__dirname,'../src/casperService.js'),
-    JSON.stringify(privateKey),
-      to,
-      amount,
-      network,
-    ]);
+    // console.log('privateKey =', privateKey);
+    // let stderr = '';
+    // let stdout = cp.execFileSync('node', [path.join(__dirname,'../src/casperService.js'),
+    // JSON.stringify(privateKey),
+    //   to,
+    //   amount,
+    //   network,
+    // ]);
     // let { stdout, stderr } = await exec(
     //   `node src/casperService.js ${[
     //     JSON.stringify(privateKey),
     //   ]} ${to} ${amount} ${network}`
     // );
-    return { stdout, stderr };
+
+
+
+    // return { stdout, stderr };
     // exec('node src/test.js',(err,data,getter) => {
     //   console.log('data =', data)
     // })
   } catch (error) {
-    console.log('error = ', error);
+    return new Promise((resolve) => {
+      resolve({stdout:'nope',stderr:error});
+    });
   }
 };
 export const delegate = async (

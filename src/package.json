@@ -14,5 +14,12 @@
     "postinstall": "yarn electron-rebuild"
   },
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "@ethersproject/bytes": "^5.3.0",
+    "bip39": "^3.0.4",
+    "blakejs": "^1.1.1",
+    "casper-client-sdk": "^1.4.2",
+    "ethereumjs-wallet": "^1.0.1",
+    "tweetnacl": "^1.0.3"
+  }
 }
