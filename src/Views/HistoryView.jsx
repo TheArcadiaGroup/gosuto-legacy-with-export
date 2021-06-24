@@ -56,7 +56,7 @@ const HistoryView = () => {
           from={card.fromAccount}
           to={card.toAccount}
           method={card.method}
-          lost={card.fromAccount == '2e008ed4b3f74508f65790b83ff3cc0647984b214d752b57638816ce54d9b094'}
+          lost={card.fromAccount == selectedWallet?.accountHash}
         />
       ))}
     </>

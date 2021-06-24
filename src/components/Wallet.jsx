@@ -191,7 +191,7 @@ const Wallet = ({
               className="send-button-no-mt"
               style={{ margin: 'auto', display: 'block' }}
             >
-              {path.join(__dirname,'../src/casperService.js')}
+              {/* {path.join(__dirname,'../src/casperService.js')} */}
               Next
             </Button>
           </div>

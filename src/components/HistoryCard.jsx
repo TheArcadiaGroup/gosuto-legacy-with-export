@@ -32,7 +32,7 @@ const HistoryCard = ({
                   lost ? 'history-card-amount-lose' : 'history-card-amount'
                 }
               >
-                {lost ? '-' : '+'} {amount} {method == 'Sent' ? `to ${to}` : `from ${from}`}
+                {lost ? '-' : '+'} {amount} {method == 'Sent' || method =='Staking' ? `to ${to}` : `from ${from}`}
               </div>
               {note && <div className="history-card-note">Note: {note}</div>}
             </div>
