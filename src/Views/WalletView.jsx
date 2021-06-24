@@ -273,7 +273,7 @@ return (
         filters: [
             {
                 name: 'Private Key File',
-                extensions: ['pem']
+                extensions: ['pem','cer']
             }, ],
         // Specifying the File Selector Property
         properties: ['openFile']
