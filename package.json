@@ -31,7 +31,7 @@
   },
   "build": {
     "productName": "Gosuto",
-    "appId": "org.erb.ElectronReact",
+    "appId": "agency.arcadia.gosuto-wallet",
     "files": [
       "dist/",
       "node_modules/",
@@ -91,13 +91,11 @@
       "repo": ""
     }
   },
-
   "author": {
     "name": "Arcadia",
     "email": "rasikh@arcadiamgroup.com"
   },
   "license": "MIT",
-
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {
@@ -249,7 +247,6 @@
     "npm": ">=6.x",
     "yarn": ">=1.21.3"
   },
-
   "browserslist": [],
   "prettier": {
     "overrides": [

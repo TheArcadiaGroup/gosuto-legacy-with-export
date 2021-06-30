@@ -44,7 +44,7 @@ async function transfer(privateKey, to, amount, network) {
 
     const deployParams = new DeployUtil.DeployParams(
       keyPair.publicKey,
-      'casper-test'
+      network
     );
 
     const toPublicKey = PublicKey.fromHex(to);

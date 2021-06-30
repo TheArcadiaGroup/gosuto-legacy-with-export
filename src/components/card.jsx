@@ -7,7 +7,6 @@ const { Option } = Select;
 
 const WalletCard = ({ tag, title, amount, selector, rewards }) => {
   const handleChange = (value) => {
-    console.log(`selected ${value}`);
   };
   return (
     <div className="site-card-wrapper">

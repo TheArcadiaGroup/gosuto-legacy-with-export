@@ -11,21 +11,53 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, dialog, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import server from './server'
+import server from './server';
 
-server.listen(3000, function () {
-  console.log('Express server listening on port ');
+server.listen(3000, function() {
+  console.log();
 });
-
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
+    const rs = 'https://gosuto-rs.herokuapp.com';
+    const url = `${rs}/update/${process.platform}/${app.getVersion()}`;
+
+    autoUpdater.setFeedURL(url);
     autoUpdater.checkForUpdatesAndNotify();
+
+    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+      const dialogOpts = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'Application Update',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail:
+          'A new version has been downloaded. Restart the application to apply the updates.',
+      };
+
+      dialog.showMessageBox(dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall();
+      });
+    });
+
+    autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
+      const dialogOpts = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'update-available',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail: 'update-available',
+      };
+
+      dialog.showMessageBox(dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall();
+      });
+    });
   }
 }
 
@@ -76,11 +108,11 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('vault-logo.png'),
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
-      preload: path.join(__dirname,'../src/casperService.js'),
+      preload: path.join(__dirname, '../src/casperService.js'),
     },
   });
 
@@ -115,7 +147,7 @@ const createWindow = async () => {
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
-  new AppUpdater();
+  // new AppUpdater();
 };
 
 /**

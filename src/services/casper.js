@@ -25,11 +25,12 @@ export const getEndpointByNetwork = (network) => {
   return 'http://testnet.gosuto.io:7777/rpc';
 };
 
-export const getAccountBalance = async (publicKey, network) => {
-  // publicKey = '01b1126cfaf8f6df4209b5f4a88a5e3bb95f912c0307fa3e1d3e89a3946411b021'
-
+export const getAccountBalance = async (
+  publicKey,
+  latestBlockHash,
+  network
+) => {
   try {
-    const latestBlockHash = (await getLatestBlockInfo(network)).block.hash;
     console.log('latestBlockHash = ', latestBlockHash);
     const casperService = new CasperServiceByJsonRPC(
       getEndpointByNetwork(network)
@@ -55,13 +56,16 @@ export const getAccountBalance = async (publicKey, network) => {
 
 export const getWalletBalancesSum = async (publicKeys, network) => {
   try {
+    const latestBlockHash = await getLatestBlockInfo();
+
     let sum = 0;
     for (let index = 0; index < publicKeys.length; index++) {
       try {
         const element = publicKeys[index];
-        sum += await getAccountBalance(element);
+        sum += await getAccountBalance(element, latestBlockHash.block.hash, network);
       } catch (error) {
         // alert('error')
+        console.log('ERROR')
       }
     }
     return sum;
@@ -101,13 +105,14 @@ export const getValidatorWeight = async (publicKey, network) => {
   } catch (error) {}
 };
 
-export const getValidatorRewards = async (publicKey) => {
+export const getValidatorRewards = async (publicKey, network) => {
   // publicKey = '01b1126cfaf8f6df4209b5f4a88a5e3bb95f912c0307fa3e1d3e89a3946411b021'
+  network = network == 'casper-test' ? 'testnet' : 'mainnet';
 
   try {
     let rewardsSum = 0;
     let currentPage = 1;
-    let url = `https://event-store-api-clarity-mainnet.make.services/validators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
+    let url = `https://event-store-api-clarity-${network}.make.services/validators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
     let response = await fetch(url);
     let jsonResponse = await response.json();
     for (let index = 0; index < jsonResponse.data.length; index++) {
@@ -116,7 +121,7 @@ export const getValidatorRewards = async (publicKey) => {
     }
     while (jsonResponse.pageCount > currentPage) {
       currentPage++;
-      url = `https://event-store-api-clarity-mainnet.make.services/validators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
+      url = `https://event-store-api-clarity-${network}.make.services/validators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
       response = await fetch(url);
       jsonResponse = await response.json();
       for (let index = 0; index < jsonResponse.data.length; index++) {
@@ -127,32 +132,21 @@ export const getValidatorRewards = async (publicKey) => {
     return rewardsSum / 1e9;
   } catch (error) {}
 };
-export const getDelegatorRewards = async (publicKey) => {
+export const getDelegatorRewards = async (publicKey, network) => {
   // publicKey = '01b1126cfaf8f6df4209b5f4a88a5e3bb95f912c0307fa3e1d3e89a3946411b021'
 
   try {
+    network = network == 'casper-test' ? 'testnet' : 'mainnet';
     const startDate = new Date();
-    let rewardsSum = 0;
-    let currentPage = 1;
-    let url = `https://event-store-api-clarity-mainnet.make.services/delegators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
-    let response = await fetch(url);
-    let jsonResponse = await response.json();
-    for (let index = 0; index < jsonResponse.data.length; index++) {
-      const element = jsonResponse.data[index];
-      rewardsSum += element.amount;
-    }
-    while (jsonResponse.pageCount > currentPage) {
-      currentPage++;
-      url = `https://event-store-api-clarity-mainnet.make.services/delegators/${publicKey}/rewards?with_amounts_in_currency_id=1&page=${currentPage}&limit=100`;
-      response = await fetch(url);
-      jsonResponse = await response.json();
-      for (let index = 0; index < jsonResponse.data.length; index++) {
-        const element = jsonResponse.data[index];
-        rewardsSum += element.amount;
-      }
-    }
-    return rewardsSum / 1e9;
-  } catch (error) {}
+    const rewardsSum = 0;
+    const currentPage = 1;
+    const url = `https://event-store-api-clarity-${network}.make.services/delegators/${publicKey}/total-rewards`;
+    const response = await fetch(url);
+    const jsonResponse = await response.json();
+    return parseFloat(jsonResponse.data) / 1e9;
+  } catch (error) {
+    console.log('error = ', error);
+  }
 };
 
 export const getLatestBlockInfo = async (network) => {
@@ -162,7 +156,9 @@ export const getLatestBlockInfo = async (network) => {
     );
     const latestBlock = await casperService.getLatestBlockInfo();
     return latestBlock;
-  } catch (error) {}
+  } catch (error) {
+    console.log(`ERROR ${error}`);
+  }
 };
 
 export const getTotalStaked = async (network) => {
@@ -199,7 +195,9 @@ export const getCasperMarketInformation = async () => {
       casperCirculatingSupply,
       casperPriceChangePercentage24h,
     };
-  } catch (error) {}
+  } catch (error) {
+    console.log('getCasperMarketInformation Error');
+  }
 };
 
 export const getUserDelegatedAmount = async (publicKey, network) => {
@@ -214,22 +212,36 @@ export const getUserDelegatedAmount = async (publicKey, network) => {
     const eraValidators = validatorsInfo.auction_state.era_validators[0];
     const { bids } = validatorsInfo.auction_state;
     let stakedAmount = 0;
+
     bids.forEach((bid) => {
       const { delegators } = bid.bid;
-      delegators.forEach((delegator) => {
+      for (let index = 0; index < delegators.length; index++) {
+        const delegator = delegators[index];
         if (delegator.public_key == publicKey) {
+          console.log('beofre');
+          const validatorWeight =
+            eraValidators.validator_weights.filter(
+              (validator) => validator.public_key === bid.public_key
+            )[0].weight / 1e9;
+          console.log('this is it = ', validatorWeight);
           stakingOperations.push({
             validator: bid.public_key,
             delegationRate: bid.bid.delegation_rate,
             selfStake: bid.bid.staked_amount / 1e9,
             stakedAmount: delegator.staked_amount / 1e9,
+            validatorWeight,
           });
           stakedAmount += delegator.staked_amount / 1e9;
         }
-      });
+      }
+      // delegators.forEach((delegator) => {
+
+      // });
     });
     return { stakedAmount, stakingOperations };
-  } catch (error) {}
+  } catch (error) {
+    console.log('error =', error);
+  }
 };
 
 export const getValidatorByDeploy = async (deployHash, network) => {
@@ -237,7 +249,12 @@ export const getValidatorByDeploy = async (deployHash, network) => {
     getEndpointByNetwork(network)
   );
   const { session } = (await casperService.getDeployInfo(deployHash)).deploy;
-  return session.ModuleBytes.args[2][1].parsed;
+
+  return session.ModuleBytes
+    ? session.ModuleBytes?.args[2][1]?.parsed
+    : session.StoredContractByHash
+    ? session.StoredContractByHash?.args[1][1]?.parsed
+    : '';
 };
 
 export const getAccountHistory = async (accountHash, page, limit, network) => {
@@ -252,7 +269,7 @@ export const getAccountHistory = async (accountHash, page, limit, network) => {
         console.log('transfer to == null', transfer.deployHash);
         const validator = await getValidatorByDeploy(
           transfer.deployHash,
-          'casper-test'
+          network
         );
         console.log('validator = ', validator);
         const newTransfer = {
@@ -262,7 +279,7 @@ export const getAccountHistory = async (accountHash, page, limit, network) => {
         };
         return {
           ...newTransfer,
-          method: 'Staking'
+          method: 'Staking',
         };
       }
       return {
@@ -276,7 +293,7 @@ export const getAccountHistory = async (accountHash, page, limit, network) => {
   }
 };
 
-export const transfer = async (privateKey, to, amount, network,note) => {
+export const transfer = async (privateKey, to, amount, network, note) => {
   try {
     // // to = '01e6c56c86ca97d7387d0c989c061ceeb205eeb04adf9ec41569292120ed9ae4a5';
     // // amount = 5697999990000;
@@ -332,7 +349,7 @@ export const transfer = async (privateKey, to, amount, network,note) => {
       to,
       amount,
       network,
-      note
+      note,
     });
     return await new Promise((resolve) => {
       resolve({ stdout: res.deploy_hash, stderr: '' });
@@ -370,60 +387,23 @@ export const delegate = async (
   amountToDelegate,
   network
 ) => {
-  // const client = new CasperClient(getEndpointByNetwork(network));
-  // const contract = Uint8Array.from(
-  //   Buffer.from(casperDelegationContractHexCode, 'hex')
-  // );
-  // const publicKeyArray = Keys.readBase64WithPEM(
-  //   `-----BEGIN PUBLIC KEY-----\r\nMCowBQYDK2VwAyEAcFZSSRoBQPKFz3ELWAG4QX3q1GqiY54+I88xl49Eblg=\r\n-----END PUBLIC KEY-----\r\n`
-  // );
-  // const privateKeyArray = Keys.readBase64WithPEM(
-  //   `-----BEGIN PRIVATE KEY-----\r\nMC4CAQAwBQYDK2VwBCIEIFFJPMA//nqjCVOFb8lVgj0qS1WK4JFWfqZ9cb5Uj1BU\r\n-----END PRIVATE KEY-----\r\n`
-  // );
-  // const publicKey = Keys.Ed25519.parsePublicKey(publicKeyArray);
-  // const privateKey = Keys.Ed25519.parsePrivateKey(privateKeyArray);
-  // const keyPair = new Keys.Ed25519({
-  //   publicKey,
-  //   secretKey: Buffer.concat([privateKey, publicKey]),
-  // });
-  // const deployParams = new DeployUtil.DeployParams(keyPair.publicKey, 'casper');
-  // const payment = DeployUtil.standardPayment(300000000000);
-  // const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
-  //   contract,
-  //   RuntimeArgs.fromMap({
-  //     action: CLValue.string('delegate'),
-  //     delegator: CLValue.publicKey(keyPair.publicKey),
-  //     validator: CLValue.publicKey(
-  //       PublicKey.fromHex(
-  //         '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'
-  //       )
-  //     ),
-  //     amount: CLValue.u512('3000000000000000'),
-  //   })
-  // );
-  // let deploy = DeployUtil.makeDeploy(deployParams, session, payment);
-  // const serializedBody = DeployUtil.serializeBody(
-  //   deploy.payment,
-  //   deploy.session
-  // );
-  // const bodyHash = blake.blake2b(serializedBody, null, 32);
-  // let jsonDeploy = DeployUtil.deployToJson(deploy);
-
-  // const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
-  // console.log('signed deploy = ', DeployUtil.deployToJson(signedDeploy));
-  // // console.log((JSON.stringify(DeployUtil.deployToJson(signedDeploy))))
-  // // console.log(JSON.stringify(DeployUtil.deployToJson(signedDeploy)))
-  // let res;
-  // try {
-  //   res = await client.putDeploy(signedDeploy);
-  // } catch (error) {
-  //   console.log(error);
-  // }
-  // return res;
   return axios.post('http://localhost:3000/delegate', {
     privateKey,
     validatorPublicKey,
     amountToDelegate,
+    network,
+  });
+};
+export const undelegate = async (
+  privateKey,
+  validatorPublicKey,
+  amountToUndelegate,
+  network
+) => {
+  return axios.post('http://localhost:3000/undelegate', {
+    privateKey,
+    validatorPublicKey,
+    amountToUndelegate,
     network,
   });
 };
