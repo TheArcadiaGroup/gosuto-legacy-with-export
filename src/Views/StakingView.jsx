@@ -389,7 +389,7 @@ const StakingView = () => {
         <Col span={12}>
           <AddWallet
             customOnCancelLogic={customOnCancelLogic}
-            title="Earn with Arcadia"
+            title={'Earn with Arcadia'}
             children={earnModalSystem()}
             footer={[
               <div style={{ display: 'flex', justifyContent: 'center' }}>

@@ -30,7 +30,7 @@ import '../App.global.scss';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import WalletContext from '../contexts/WalletContext';
-import { transfer } from '../services/casper';
+import { getAccountBalance, transfer } from '../services/casper';
 import NetworkContext from '../contexts/NetworkContext';
 
 const { Option } = Select;
@@ -47,6 +47,8 @@ const Wallet = ({
   shouldUpdate,
   setWallets,
   wallets,
+  setData,
+  data,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
@@ -86,6 +88,12 @@ const Wallet = ({
           let wallet = await db.findOne({ _id: id });
           localStorage.setItem('defaultWallet', JSON.stringify(wallet));
           setSelectedWallet(wallet);
+          setData({
+            ...data,
+            shouldUpdateWallet: true,
+            shouldUpdateHistory: true,
+            shouldUpdateStaking: true,
+          });
         }}
       >
         Set default wallet
@@ -133,6 +141,12 @@ const Wallet = ({
     await db.remove({ _id: id });
     const newWallets = wallets.filter((wallet) => wallet._id != id);
     setWallets(newWallets);
+    setData({
+      ...data,
+      wallets: newWallets,
+      walletsLastUpdate: new Date(),
+      shouldUpdateWallets: false,
+    });
     // setShouldUpdate(!shouldUpdate);
   };
   const showModal = () => {
@@ -148,7 +162,8 @@ const Wallet = ({
     setRecipient(event.target.value);
   };
   const onChangeNote = (event) => {
-    setNote(event.target.value);
+    console.log('note changed', event.target.value);
+    if (event.target.value.indexOf('e') < 0) setNote(event.target.value);
   };
   const handleSelect = (value) => {
     setNetwork(value);
@@ -193,6 +208,13 @@ const Wallet = ({
                   placeholder="Transfer ID (optional)"
                   onChange={onChangeNote}
                   value={note}
+                  onKeyDown={(evt) =>
+                    (evt.key === 'e' ||
+                      evt.key === '.' ||
+                      evt.key === ',' ||
+                      evt.key === '`') &&
+                    evt.preventDefault()
+                  }
                 />
               </div>
               {/* <div>
@@ -224,7 +246,7 @@ const Wallet = ({
           <>
             <div className="modal-subtitle">Your transaction information</div>
             <div>
-              {!result.toUpperCase().startsWith('ERROR') && (
+              {!result?.toUpperCase().startsWith('ERROR') && (
                 <span className="modal-description">Deploy hash</span>
               )}
 
@@ -249,50 +271,52 @@ const Wallet = ({
                 </Button>
               </div>
               {!result.toUpperCase().startsWith('ERROR') && (
-                <span className="modal-description">Explorer link</span>
+                <>
+                  <span className="modal-description">Explorer link</span>
+                  <TextArea
+                    type="text"
+                    className="modal-input-amount"
+                    style={{ padding: '13px', cursor: 'pointer' }}
+                    value={
+                      selectedNetwork === 'casper-test'
+                        ? `https://testnet.cspr.live/deploy/${result}`
+                        : `https://cspr.live/deploy/${result}`
+                    }
+                    disabled
+                  />
+                  <div style={{ display: 'flex' }}>
+                    <Button
+                      onClick={async () => {
+                        const url =
+                          selectedNetwork === 'casper-test'
+                            ? `https://testnet.cspr.live/deploy/${result}`
+                            : `https://cspr.live/deploy/${result}`;
+                        await navigator.clipboard.writeText(url);
+                        openNotification();
+                      }}
+                      className="send-button-no-mt"
+                      style={{ margin: 'auto', display: 'block' }}
+                    >
+                      {/* {path.join(__dirname,'../src/casperService.js')} */}
+                      Copy
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const url =
+                          selectedNetwork === 'casper-test'
+                            ? `https://testnet.cspr.live/deploy/${result}`
+                            : `https://cspr.live/deploy/${result}`;
+                        window.open(url, '_blank');
+                      }}
+                      className="send-button-no-mt"
+                      style={{ margin: 'auto', display: 'block' }}
+                    >
+                      {/* {path.join(__dirname,'../src/casperService.js')} */}
+                      Open in browser
+                    </Button>
+                  </div>
+                </>
               )}
-              <TextArea
-                type="text"
-                className="modal-input-amount"
-                style={{ padding: '13px', cursor: 'pointer' }}
-                value={
-                  selectedNetwork === 'casper-test'
-                    ? `https://testnet.cspr.live/deploy/${result}`
-                    : `https://cspr.live/deploy/${result}`
-                }
-                disabled
-              />
-              <div style={{ display: 'flex' }}>
-                <Button
-                  onClick={async () => {
-                    const url =
-                      selectedNetwork === 'casper-test'
-                        ? `https://testnet.cspr.live/deploy/${result}`
-                        : `https://cspr.live/deploy/${result}`;
-                    await navigator.clipboard.writeText(url);
-                    openNotification();
-                  }}
-                  className="send-button-no-mt"
-                  style={{ margin: 'auto', display: 'block' }}
-                >
-                  {/* {path.join(__dirname,'../src/casperService.js')} */}
-                  Copy
-                </Button>
-                <Button
-                  onClick={() => {
-                    const url =
-                      selectedNetwork === 'casper-test'
-                        ? `https://testnet.cspr.live/deploy/${result}`
-                        : `https://cspr.live/deploy/${result}`;
-                    window.open(url, '_blank');
-                  }}
-                  className="send-button-no-mt"
-                  style={{ margin: 'auto', display: 'block' }}
-                >
-                  {/* {path.join(__dirname,'../src/casperService.js')} */}
-                  Open in browser
-                </Button>
-              </div>
             </div>
           </>
         )}
@@ -326,6 +350,9 @@ const Wallet = ({
       console.log('transfer res = ', result);
       setIsPendingTransfer(false);
       setSendComplete(true);
+      setTimeout(async () => {
+        const newBalance = await getAccountBalance(wallet?.accountHex);
+      }, 200000);
     } catch (error) {
       alert('error');
       alert(error);
