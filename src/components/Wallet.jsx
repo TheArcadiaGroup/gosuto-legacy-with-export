@@ -45,6 +45,8 @@ const Wallet = ({
   db,
   setShouldUpdate,
   shouldUpdate,
+  setWallets,
+  wallets,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
@@ -60,6 +62,7 @@ const Wallet = ({
   const [network, setNetwork] = useState('');
   const [isPendingTransfer, setIsPendingTransfer] = useState(false);
   const [sendComplete, setSendComplete] = useState(false);
+  const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
 
   const openNotification = () => {
     notification.success({
@@ -85,7 +88,7 @@ const Wallet = ({
           setSelectedWallet(wallet);
         }}
       >
-        Set Default Wallet
+        Set default wallet
       </Menu.Item>
       <Menu.Item
         key="0"
@@ -103,7 +106,7 @@ const Wallet = ({
           setWalletDetailsModalVisible(true);
         }}
       >
-        View Keys
+        View keys
       </Menu.Item>
       <Menu.Item
         key="1"
@@ -114,7 +117,7 @@ const Wallet = ({
       >
         Edit
       </Menu.Item>
-      <Menu.Item key="3" onClick={() => removeWallet()}>
+      <Menu.Item key="3" onClick={async () => await removeWallet()}>
         Remove
       </Menu.Item>
     </Menu>
@@ -123,15 +126,14 @@ const Wallet = ({
   const removeWallet = async () => {
     const defaultWallet = localStorage.getItem('defaultWallet');
     if (defaultWallet) {
-      console.log('JSON.parse(defaultWallet) = ', JSON.parse(defaultWallet));
-      console.log('id = ', id);
       if (JSON.parse(defaultWallet)._id == id) {
-        console.log('equals!!');
         localStorage.removeItem('defaultWallet');
       }
     }
     await db.remove({ _id: id });
-    setShouldUpdate(!shouldUpdate);
+    const newWallets = wallets.filter((wallet) => wallet._id != id);
+    setWallets(newWallets);
+    // setShouldUpdate(!shouldUpdate);
   };
   const showModal = () => {
     setIsModalVisible(true);
@@ -140,19 +142,15 @@ const Wallet = ({
     setWalletDetailsModalVisible(true);
   };
   const onChangeAmount = (value) => {
-    console.log('changed amount', value);
     setAmountToSend(parseFloat(value));
   };
   const onChangeAddress = (event) => {
-    console.log('changed address', event.target.value);
     setRecipient(event.target.value);
   };
   const onChangeNote = (event) => {
-    console.log('changed note', event);
     setNote(event.target.value);
   };
   const handleSelect = (value) => {
-    console.log(`selected ${value}`);
     setNetwork(value);
   };
   const sendModalSystem = () => {
@@ -167,13 +165,13 @@ const Wallet = ({
             <Spin style={{ margin: 'auto', display: 'block' }} />
           </>
         )}
-        {(!isPendingTransfer && !sendComplete) && (
+        {!isPendingTransfer && !sendComplete && (
           <>
             <div>
               <div>
                 <InputNumber
                   className="modal-input-amount"
-                  min={1}
+                  min={2.5}
                   max={10000000000}
                   placeholder="Enter Amount"
                   onChange={onChangeAmount}
@@ -192,7 +190,7 @@ const Wallet = ({
                 <Input
                   type="number"
                   className="modal-input-note"
-                  placeholder="Note (optional)"
+                  placeholder="Transfer ID (optional)"
                   onChange={onChangeNote}
                   value={note}
                 />
@@ -226,7 +224,9 @@ const Wallet = ({
           <>
             <div className="modal-subtitle">Your transaction information</div>
             <div>
-              {!result.toUpperCase().startsWith('ERROR') &&  <span className="modal-description">Deploy hash</span>}
+              {!result.toUpperCase().startsWith('ERROR') && (
+                <span className="modal-description">Deploy hash</span>
+              )}
 
               <TextArea
                 type="text"
@@ -248,6 +248,51 @@ const Wallet = ({
                   Copy
                 </Button>
               </div>
+              {!result.toUpperCase().startsWith('ERROR') && (
+                <span className="modal-description">Explorer link</span>
+              )}
+              <TextArea
+                type="text"
+                className="modal-input-amount"
+                style={{ padding: '13px', cursor: 'pointer' }}
+                value={
+                  selectedNetwork === 'casper-test'
+                    ? `https://testnet.cspr.live/deploy/${result}`
+                    : `https://cspr.live/deploy/${result}`
+                }
+                disabled
+              />
+              <div style={{ display: 'flex' }}>
+                <Button
+                  onClick={async () => {
+                    const url =
+                      selectedNetwork === 'casper-test'
+                        ? `https://testnet.cspr.live/deploy/${result}`
+                        : `https://cspr.live/deploy/${result}`;
+                    await navigator.clipboard.writeText(url);
+                    openNotification();
+                  }}
+                  className="send-button-no-mt"
+                  style={{ margin: 'auto', display: 'block' }}
+                >
+                  {/* {path.join(__dirname,'../src/casperService.js')} */}
+                  Copy
+                </Button>
+                <Button
+                  onClick={() => {
+                    const url =
+                      selectedNetwork === 'casper-test'
+                        ? `https://testnet.cspr.live/deploy/${result}`
+                        : `https://cspr.live/deploy/${result}`;
+                    window.open(url, '_blank');
+                  }}
+                  className="send-button-no-mt"
+                  style={{ margin: 'auto', display: 'block' }}
+                >
+                  {/* {path.join(__dirname,'../src/casperService.js')} */}
+                  Open in browser
+                </Button>
+              </div>
             </div>
           </>
         )}
@@ -260,21 +305,27 @@ const Wallet = ({
   const onSendConfirm = async () => {
     try {
       setIsPendingTransfer(true);
-      let wallet = await db.findOne({ _id: id });
+      const wallet = await db.findOne({ _id: id });
+      let newNote;
+      if (Number.isNaN(parseInt(note, 10))) {
+        newNote = new Date().getTime();
+      } else {
+        newNote = note;
+      }
       const result = await transfer(
         // selectedWallet?.publicKeyUint8,
         wallet?.privateKeyUint8,
         recipient,
         parseFloat(amountToSend) * 1e9,
-        'casper-test',
-        note
+        selectedNetwork,
+        newNote
       );
       result?.data?.deploy_hash
         ? setResult(result?.data?.deploy_hash)
         : setResult(result.data);
       console.log('transfer res = ', result);
       setIsPendingTransfer(false);
-      setSendComplete(true)
+      setSendComplete(true);
     } catch (error) {
       alert('error');
       alert(error);
@@ -284,7 +335,8 @@ const Wallet = ({
   const customOnCancelLogic = () => {
     setSendComplete(false);
     setResult('');
-  }
+    setShouldRevealPrivateKey(false);
+  };
 
   const copyValue = async (valueToCopy) => {
     await navigator.clipboard.writeText(valueToCopy);
@@ -389,20 +441,33 @@ const Wallet = ({
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <span className="modal-description">Private key</span>
+
                 <TextArea
                   value={wallet.privateKey}
                   type="text"
                   rows={3}
+                  hidden={!shouldRevealPrivateKey}
                   className="modal-input-amount"
                   style={{ padding: '13px' }}
                 />
-                <Button
-                  onClick={() => copyValue(wallet.privateKey)}
-                  className="send-button-no-mt"
-                  style={{ margin: 'auto', display: 'block' }}
-                >
-                  COPY
-                </Button>
+
+                {shouldRevealPrivateKey ? (
+                  <Button
+                    onClick={() => copyValue(wallet.privateKey)}
+                    className="send-button-no-mt"
+                    style={{ margin: 'auto', display: 'block' }}
+                  >
+                    COPY
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setShouldRevealPrivateKey(true)}
+                    className="send-button-no-mt"
+                    style={{ margin: 'auto', display: 'block' }}
+                  >
+                    Show private key
+                  </Button>
+                )}
               </div>
             </>
           )}
@@ -504,6 +569,7 @@ const Wallet = ({
         visible={walletDetailsModalVisible}
         changeVisibility={setWalletDetailsModalVisible}
         children={viewMnemonicModalSystem()}
+        customOnCancelLogic={customOnCancelLogic}
         footer={[]}
       />
     </div>

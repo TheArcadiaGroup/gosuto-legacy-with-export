@@ -57,7 +57,7 @@ server.post('/transfer', async function (req, res) {
 
     const deployParams = new DeployUtil.DeployParams(
       keyPair.publicKey,
-      'casper-test',
+      network,
       gasPrice,
       ttl
     );
@@ -104,18 +104,13 @@ server.post('/delegate', async function (req, res) {
       return parseInt(val.substr(val.indexOf(':') + 1, val.length));
     });
     privateKey = Uint8Array.from(newll);
-    console.log('body = ', {
-      privateKey,
-      validatorPublicKey,
-      amountToDelegate,
-      network,
-    });
+
     const publicKey = Keys.Ed25519.privateToPublicKey(privateKey);
     const keyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
 
     const deployParams = new DeployUtil.DeployParams(
       keyPair.publicKey,
-      'casper-test'
+      network
     );
     const payment = DeployUtil.standardPayment(3000000000);
     const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
@@ -127,6 +122,63 @@ server.post('/delegate', async function (req, res) {
         amount: CLValue.u512(amountToDelegate),
       })
     );
+    const deploy = DeployUtil.makeDeploy(deployParams, session, payment);
+    const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
+    const executionResult = await client.putDeploy(signedDeploy);
+    res.send(executionResult);
+  } catch (error) {
+    res.send(error.toString());
+  }
+});
+server.post('/undelegate', async function (req, res) {
+  try {
+    let { privateKey, validatorPublicKey, amountToUndelegate, network } =
+      req.body;
+
+    const client = new CasperClient(getEndpointByNetwork(network));
+    const contract = Uint8Array.from(
+      Buffer.from(casperDelegationContractHexCode, 'hex')
+    );
+    const ll = JSON.stringify(privateKey)
+      .replace('{', '')
+      .replace('}', '')
+      .split(',');
+    const newll = ll.map((val) => {
+      return parseInt(val.substr(val.indexOf(':') + 1, val.length));
+    });
+    privateKey = Uint8Array.from(newll);
+
+    const publicKey = Keys.Ed25519.privateToPublicKey(privateKey);
+    const keyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
+
+    const deployParams = new DeployUtil.DeployParams(
+      keyPair.publicKey,
+      network
+    );
+    const payment = DeployUtil.standardPayment(500000000);
+    const args = RuntimeArgs.fromMap({
+      delegator: CLValue.publicKey(keyPair.publicKey),
+      validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+      amount: CLValue.u512(amountToUndelegate),
+    });
+    const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
+      Uint8Array.from(
+        Buffer.from(
+          '68e15f19eb37e6062c1a73d26acf3793bf39027713db6c4ff2baad6e7a5054f1','hex'
+        )
+      ),
+      'undelegate',
+      args
+    );
+    // const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
+    //   contract,
+    //   RuntimeArgs.fromMap({
+    //     action: CLValue.string('undelegate'),
+    //     delegator: CLValue.publicKey(keyPair.publicKey),
+    //     validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+    //     amount: CLValue.u512(amountToUndelegate),
+    //   })
+    // );
     const deploy = DeployUtil.makeDeploy(deployParams, session, payment);
     const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
     const executionResult = await client.putDeploy(signedDeploy);

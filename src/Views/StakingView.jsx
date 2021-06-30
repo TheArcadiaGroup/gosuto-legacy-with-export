@@ -22,6 +22,7 @@ import {
   getAccountBalance,
   getCasperMarketInformation,
   getDelegatorRewards,
+  getLatestBlockInfo,
   getUserDelegatedAmount,
   getValidatorRewards,
   getValidatorWeight,
@@ -30,6 +31,7 @@ import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import WalletContext from '../contexts/WalletContext';
 import NetworkContext from '../contexts/NetworkContext';
+import DataContext from '../contexts/DataContext';
 
 const { Option } = Select;
 
@@ -49,6 +51,9 @@ const StakingView = () => {
   const [amountToDelegate, setAmountToDelegate] = useState(1);
   const [stakeSuccessful, setStakeSuccessful] = useState(false);
   const [isStakePending, setIsStakePending] = useState(false);
+  const [data, setData] = useContext(DataContext);
+  const [pageLoading, setPageLoading] = useState(true);
+
   const [result, setResult] = useState('');
   const handleSelect = (value) => {
     console.log(`selected ${value}`);
@@ -74,17 +79,37 @@ const StakingView = () => {
         const delegated = userDelegation.stakedAmount;
         setDelegatedAmount(delegated);
         const totalRewards = await getDelegatorRewards(
-          selectedWallet?.accountHex
+          selectedWallet?.accountHex,
+          selectedNetwork
         );
         setDelegationRewards(totalRewards);
         setDelegationOperations(userDelegation.stakingOperations);
         const valRewards = await getValidatorRewards(
-          selectedWallet?.accountHex
+          selectedWallet?.accountHex,
+          selectedNetwork
         );
+        const latestBlockHash = await getLatestBlockInfo();
+
         setValidatorRewards(valRewards);
-        setAccountBalance(
-          await getAccountBalance(selectedWallet?.accountHex, selectedNetwork)
+        const accBalance = await getAccountBalance(
+          selectedWallet?.accountHex,
+          latestBlockHash.block.hash,
+          selectedNetwork
         );
+        setAccountBalance(accBalance);
+        setData({
+          ...data,
+          validatorWeight: weight,
+          delegatedAmount: delegated,
+          delegationRewards: totalRewards,
+          stakingOperations: userDelegation.stakingOperations,
+          validatorRewards: valRewards,
+          stakingLastUpdate: new Date(),
+          cPrice,
+          accountBalance: accBalance,
+          shouldUpdateStaking: false,
+        });
+        setPageLoading(false);
       } catch (error) {
         console.log(error);
         notification.error({
@@ -113,24 +138,37 @@ const StakingView = () => {
       // }
       setWallets(wallets);
     }
-    getStakingDetails();
-    getWallets();
-  }, [selectedNetwork]);
+    if (
+      data.cPrice == 0 ||
+      (new Date() - data.stakingLastUpdate) / 1000 > 180 ||
+      data.shouldUpdateStaking
+    ) {
+      console.log('STAKING fetching new dta');
+      console.log(
+        'STAKING duration = ',
+        (new Date() - data.stakingLastUpdate) / 1000
+      );
+      getStakingDetails();
+      getWallets();
+      setPageLoading(false);
+    } else {
+      console.log(
+        'STAKING duration = ',
+        (new Date() - data.stakingLastUpdate) / 1000
+      );
+      console.log('STAKING not fetching new data');
+      setValidatorWeight(data.weight);
+      setCasperPrice(data.cPrice);
+      setDelegatedAmount(data.delegatedAmount);
 
-  const test = async () => {
-    // const es = new EventSource('http://18.221.174.26:9999/events',{
-    //   withCredentials:true
-    // })
-    // es.onerror = (e) => {
-    //   console.log("An error occurred while attempting to connect.",e);
-    // };
-    // es.onmessage = function (event) {
-    //   console.log('event = ',JSON.parse(event.data));
-    // }
-    // // es.addEventListener('message',)
-    // const tr = await delegate();
-    // console.log('delegation = ', tr);
-  };
+      setDelegationRewards(data.delegationRewards);
+      setDelegationOperations(data.stakingOperations);
+      setValidatorRewards(data.valRewards);
+      setAccountBalance(data.accountBalance);
+      setWallets(data.wallets);
+      setPageLoading(false);
+    }
+  }, [selectedNetwork]);
 
   const earnModalSystem = () => {
     return (
@@ -248,7 +286,7 @@ const StakingView = () => {
         wallet?.privateKeyUint8,
         validatorPublicKey,
         parseFloat(amountToDelegate) * 1e9,
-        'casper-test'
+        selectedNetwork
       );
       result?.data?.deploy_hash
         ? setResult(result?.data?.deploy_hash)
@@ -269,65 +307,79 @@ const StakingView = () => {
   };
   return (
     <>
+      {(pageLoading || data.shouldUpdateStaking) && (
+        <>
+          <Spin
+            style={{
+              margin: 'auto',
+              display: 'block',
+              marginBottom: '20px',
+            }}
+          />
+        </>
+      )}
       <Row gutter={16} justify="space-between" align="middle">
         {/* <Button onClick={test}>ddd</Button> */}
+
         {validatorWeight > 0 && (
           <>
             <Col span={12}>
               <StakingCard
                 tag="Validator Weight"
-                amount={`${validatorWeight.toLocaleString()} CSPR`}
+                amount={`${validatorWeight?.toLocaleString()} CSPR`}
                 amountDollars={`${(
                   validatorWeight * casperPrice
-                ).toLocaleString()} USD`}
+                )?.toLocaleString()} USD`}
                 // validator="Arcadia"
               />
             </Col>
             <Col span={12}>
               <StakingCard
                 tag="Total Validator Rewards"
-                amount={`${validatorRewards.toLocaleString()} CSPR`}
+                amount={`${validatorRewards?.toLocaleString()} CSPR`}
                 amountDollars={`${(
                   validatorRewards * casperPrice
-                ).toLocaleString()} USD`}
+                )?.toLocaleString()} USD`}
                 // validator="Arcadia"
               />
             </Col>
           </>
         )}
-        {delegatedAmount > 0 && (
+
+        {delegatedAmount > 0 && !pageLoading && (
           <>
             <Col span={12}>
               <StakingCard
                 tag="Delegated"
-                amount={`${delegatedAmount.toLocaleString()} CSPR`}
+                amount={`${delegatedAmount?.toLocaleString()} CSPR`}
                 amountDollars={`${(
                   delegatedAmount * casperPrice
-                ).toLocaleString()} USD`}
+                )?.toLocaleString()} USD`}
                 // validator="Arcadia"
               />
             </Col>
             <Col span={12}>
               <StakingCard
                 tag="Total Delegator Rewards"
-                amount={`${delegationRewards.toLocaleString()} CSPR`}
+                amount={`${delegationRewards?.toLocaleString()} CSPR`}
                 amountDollars={`${(
                   delegationRewards * casperPrice
-                ).toLocaleString()} USD`}
+                )?.toLocaleString()} USD`}
                 // withdraw
               />
             </Col>
           </>
         )}
       </Row>
+
       <Row gutter={16} justify="space-between" align="middle">
         <Col span={12}>
           <StakingCard
             tag="Undelegated"
-            amount={`${accountBalance.toLocaleString()} CSPR`}
+            amount={`${accountBalance?.toLocaleString()} CSPR`}
             amountDollars={`${(
               accountBalance * casperPrice
-            ).toLocaleString()} USD`}
+            )?.toLocaleString()} USD`}
           />
         </Col>
         <Col span={12}>

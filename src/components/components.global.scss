@@ -27,6 +27,7 @@
 .wallet-card-amount{
     color: #0A23FB;
     font-size: 18px;
+    overflow-wrap: anywhere;
 }
 .wallet-card-rewards{
     color: #07D58D;
@@ -132,16 +133,21 @@
     color: #000852;
     font-size: 15px;
     font-weight: bold;
+    overflow-wrap: anywhere;
+
 }
 .history-card-amount{
     color: #07D58D;
     font-size: 25px;
     font-weight: bold;
+    overflow-wrap: anywhere;
+
 }
 .history-card-amount-lose{
     color: #FF6767;
     font-size: 25px;
     font-weight: bold;
+    overflow-wrap: anywhere;
 }
 .history-card-amount-dollars{
     color: #07D58D;

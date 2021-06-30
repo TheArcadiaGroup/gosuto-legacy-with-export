@@ -10,11 +10,12 @@ const HistoryCard = ({
   id,
   method,
   amount,
-  amountDollars,
+  transferId,
   lost,
   note,
   to,
-  from
+  from,
+  selectedNetwork,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   return (
@@ -32,9 +33,12 @@ const HistoryCard = ({
                   lost ? 'history-card-amount-lose' : 'history-card-amount'
                 }
               >
-                {lost ? '-' : '+'} {amount} {method == 'Sent' || method =='Staking' ? `to ${to}` : `from ${from}`}
+                {lost ? '-' : '+'} {amount}{' '}
+                {method == 'Sent' || method == 'Staking'
+                  ? `to ${to}`
+                  : `from ${from}`}
               </div>
-              {note && <div className="history-card-note">Note: {note}</div>}
+              {/* { <div className="history-card-note">Note: {note}</div>} */}
             </div>
             <div
               className={
@@ -43,7 +47,7 @@ const HistoryCard = ({
                   : 'history-card-amount-dollars'
               }
             >
-              {amountDollars}
+              {transferId && `Transfer ID: ${transferId}`}
             </div>
             <div className="wallet-card-display-flex" style={{ marginTop: 15 }}>
               {/* <div className="history-card-fee">
@@ -57,6 +61,17 @@ const HistoryCard = ({
               >
                 {method}
               </div>
+              <a
+                href={
+                  selectedNetwork === 'casper-test'
+                    ? `https://testnet.cspr.live/deploy/${id}`
+                    : `https://cspr.live/deploy/${id}`
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                View in explorer
+              </a>
             </div>
           </Card>
         </Col>
@@ -71,7 +86,7 @@ HistoryCard.propTypes = {
   id: PropTypes.string,
   method: PropTypes.string,
   amount: PropTypes.string,
-  amountDollars: PropTypes.string,
+  transferId: PropTypes.string,
   note: PropTypes.string,
   lost: PropTypes.bool,
 };
