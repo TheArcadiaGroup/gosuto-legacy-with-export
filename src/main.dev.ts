@@ -17,8 +17,9 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import server from './server';
 
-server.listen(3000, function() {
-  console.log();
+let port;
+const s = server.listen(0, function() {
+  port = s.address().port;
 });
 export default class AppUpdater {
   constructor() {
@@ -113,10 +114,15 @@ const createWindow = async () => {
       nodeIntegration: true,
       enableRemoteModule: true,
       preload: path.join(__dirname, '../src/casperService.js'),
+      additionalArguments: [
+        'myvarvalue',
+        'secondvarvalue',
+        '--another=something',
+      ],
     },
   });
 
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  mainWindow.loadURL(`file://${__dirname}/index.html?port=${port}`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event

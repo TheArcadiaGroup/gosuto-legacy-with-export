@@ -257,6 +257,7 @@ export const getValidatorByDeploy = async (deployHash, network) => {
     : '';
 };
 
+
 export const getAccountHistory = async (accountHash, page, limit, network) => {
   try {
     network = network == 'casper-test' ? 'testnet' : 'mainnet';
@@ -344,16 +345,23 @@ export const transfer = async (privateKey, to, amount, network, note) => {
     // const res = await new CasperServiceByJsonRPC(
     //   getEndpointByNetwork(network)
     // ).deploy(signedDeploy);
-    return await axios.post('http://localhost:3000/transfer', {
+    const port = parseInt(
+      global.location.search.substr(
+        global.location.search.indexOf('=') + 1,
+        global.location.search.length
+      ),
+      10
+    );
+    return await axios.post(`http://localhost:${port}/transfer`, {
       privateKey,
       to,
       amount,
       network,
       note,
     });
-    return await new Promise((resolve) => {
-      resolve({ stdout: res.deploy_hash, stderr: '' });
-    });
+    // return await new Promise((resolve) => {
+    //   resolve({ stdout: res.deploy_hash, stderr: '' });
+    // });
     // return res;
     // const path = require('path');
 
@@ -387,7 +395,14 @@ export const delegate = async (
   amountToDelegate,
   network
 ) => {
-  return axios.post('http://localhost:3000/delegate', {
+  const port = parseInt(
+    global.location.search.substr(
+      global.location.search.indexOf('=') + 1,
+      global.location.search.length
+    ),
+    10
+  );
+  return axios.post(`http://localhost:${port}/delegate`, {
     privateKey,
     validatorPublicKey,
     amountToDelegate,
@@ -400,7 +415,15 @@ export const undelegate = async (
   amountToUndelegate,
   network
 ) => {
-  return axios.post('http://localhost:3000/undelegate', {
+  const port = parseInt(
+    global.location.search.substr(
+      global.location.search.indexOf('=') + 1,
+      global.location.search.length
+    ),
+    10
+  );
+  console.log('privateKey = ', privateKey)
+  return axios.post(`http://localhost:${port}/undelegate`, {
     privateKey,
     validatorPublicKey,
     amountToUndelegate,

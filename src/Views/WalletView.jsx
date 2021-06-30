@@ -264,7 +264,14 @@ const WalletView = () => {
       // setData({ ...data, shouldUpdateWallets: true });
       await customOnCancelLogic();
       newWallet = { ...newWallet, balance: 0, amount: 0 };
+      const newWallets = [...wallets, newWallet];
       setWallets([...wallets, newWallet]);
+      setData({
+        ...data,
+        wallets: newWallets,
+        walletsLastUpdate: new Date(),
+        shouldUpdateWallets: false,
+      });
       // await getWallets(true);
     } catch (error) {
       notification.error({
@@ -307,15 +314,18 @@ const WalletView = () => {
       let publicKeyUint8;
       let keyPair;
       privateKeyUint8 = parseAlgorithm(fileContents).secretKeyBase64;
-      if (algorithm == 'ed25519') {
+      alert(algorithm);
+      if (algorithm === 'ed25519') {
         publicKeyUint8 = Keys.Ed25519.privateToPublicKey(
           Keys.Ed25519.parsePrivateKey(privateKeyUint8)
         );
         keyPair = Keys.Ed25519.parseKeyPair(publicKeyUint8, privateKeyUint8);
       } else {
+        console.log('in else', privateKeyUint8.length);
         publicKeyUint8 = Keys.Secp256K1.privateToPublicKey(
           Keys.Secp256K1.parsePrivateKey(privateKeyUint8)
         );
+        console.log('done pkuint');
         keyPair = Keys.Secp256K1.parseKeyPair(publicKeyUint8, privateKeyUint8);
       }
       console.log('keyPair = ', keyPair);
@@ -354,6 +364,7 @@ const WalletView = () => {
       //  stakedValue = csprPrice*stakedAmount
       setWallets([...wallets, newWallet]);
     } catch (error) {
+      console.log('error = ', error);
       notification.error({
         message: 'Error',
         description: 'Unable to parse private key from file',
@@ -553,7 +564,7 @@ const WalletView = () => {
   useEffect(() => {
     if (
       data.wallets == 0 ||
-      (new Date() - data.walletsLastUpdate) / 1000 > 180 ||
+      (new Date() - data.walletsLastUpdate) / 1000 > 100 ||
       data.shouldUpdateWallets
     ) {
       console.log('fetching new dta');
@@ -621,6 +632,8 @@ const WalletView = () => {
                 <Col span={8}>
                   <Wallet
                     key={i}
+                    setData={setData}
+                    data={data}
                     setWallets={setWallets}
                     wallets={wallets}
                     shouldUpdate={shouldUpdate}
