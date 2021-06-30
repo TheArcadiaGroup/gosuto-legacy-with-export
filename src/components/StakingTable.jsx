@@ -214,6 +214,53 @@ const StakingTable = ({ delegationOperations }) => {
                 </Button>
               </div>
             </div>
+            {!result.toUpperCase().startsWith('ERROR') && (
+              <>
+                <span className="modal-description">Explorer link</span>
+                <TextArea
+                  type="text"
+                  className="modal-input-amount"
+                  style={{ padding: '13px', cursor: 'pointer' }}
+                  value={
+                    selectedNetwork === 'casper-test'
+                      ? `https://testnet.cspr.live/deploy/${result}`
+                      : `https://cspr.live/deploy/${result}`
+                  }
+                  disabled
+                />
+                <div style={{ display: 'flex' }}>
+                  <Button
+                    onClick={async () => {
+                      const url =
+                        selectedNetwork === 'casper-test'
+                          ? `https://testnet.cspr.live/deploy/${result}`
+                          : `https://cspr.live/deploy/${result}`;
+                      await navigator.clipboard.writeText(url);
+                      openNotification();
+                    }}
+                    className="send-button-no-mt"
+                    style={{ margin: 'auto', display: 'block' }}
+                  >
+                    {/* {path.join(__dirname,'../src/casperService.js')} */}
+                    Copy
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const url =
+                        selectedNetwork === 'casper-test'
+                          ? `https://testnet.cspr.live/deploy/${result}`
+                          : `https://cspr.live/deploy/${result}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="send-button-no-mt"
+                    style={{ margin: 'auto', display: 'block' }}
+                  >
+                    {/* {path.join(__dirname,'../src/casperService.js')} */}
+                    Open in browser
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

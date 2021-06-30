@@ -75,7 +75,7 @@ server.post('/transfer', async function (req, res) {
     DeployUtil.deployFromJson(jsonDeploy);
     // we are sending the signed deploy
     const result = await new CasperServiceByJsonRPC(
-      'http://testnet.gosuto.io:7777/rpc'
+      getEndpointByNetwork(network)
     ).deploy(signedDeploy);
     res.send(result);
   } catch (error) {
