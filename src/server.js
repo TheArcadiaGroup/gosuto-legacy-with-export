@@ -16,7 +16,7 @@ const { casperDelegationContractHexCode } = require('./utils/casper');
 
 server.use(express.json());
 server.get('/', function (req, res) {
-  res.send('Hello world! Lala Seth is here!');
+  res.send('Welcome to Gosuto!');
 });
 
 const getEndpointByNetwork = (network) => {

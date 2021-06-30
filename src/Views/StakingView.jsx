@@ -272,8 +272,12 @@ const StakingView = () => {
   const onEarnConfirm = async () => {
     setIsStakePending(true);
 
-    const validatorPublicKey =
+    let validatorPublicKey =
       '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e';
+    if (selectedNetwork === 'casper') {
+      validatorPublicKey =
+        '01b1126cfaf8f6df4209b5f4a88a5e3bb95f912c0307fa3e1d3e89a3946411b021';
+    }
     try {
       const db = Datastore.create({
         filename: `${remote.app.getPath('userData')}/wallets.db`,
