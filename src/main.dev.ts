@@ -21,46 +21,15 @@ let port;
 const s = server.listen(0, function() {
   port = s.address().port;
 });
-export default class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    const rs = 'https://gosuto-rs.herokuapp.com';
-    const url = `${rs}/update/${process.platform}/${app.getVersion()}`;
 
-    autoUpdater.setFeedURL(url);
-    autoUpdater.checkForUpdatesAndNotify();
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
+const rs = 'https://gosuto-rs.herokuapp.com';
+const url = `${rs}/update/${process.platform}/${app.getVersion()}`;
 
-    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-      const dialogOpts = {
-        type: 'info',
-        buttons: ['Restart', 'Later'],
-        title: 'Application Update',
-        message: process.platform === 'win32' ? releaseNotes : releaseName,
-        detail:
-          'A new version has been downloaded. Restart the application to apply the updates.',
-      };
+// autoUpdater.setFeedURL(url);
+autoUpdater.checkForUpdatesAndNotify();
 
-      dialog.showMessageBox(dialogOpts).then((returnValue) => {
-        if (returnValue.response === 0) autoUpdater.quitAndInstall();
-      });
-    });
-
-    autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
-      const dialogOpts = {
-        type: 'info',
-        buttons: ['Restart', 'Later'],
-        title: 'update-available',
-        message: process.platform === 'win32' ? releaseNotes : releaseName,
-        detail: 'update-available',
-      };
-
-      dialog.showMessageBox(dialogOpts).then((returnValue) => {
-        if (returnValue.response === 0) autoUpdater.quitAndInstall();
-      });
-    });
-  }
-}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -168,10 +137,56 @@ app.on('window-all-closed', () => {
   }
 });
 
+const sendStatusToWindow = (text) => {
+  log.info(text);
+  if (mainWindow) {
+    mainWindow.webContents.send('message', text);
+  }
+}
+
 app.whenReady().then(createWindow).catch(console.log);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
+});
+
+autoUpdater.on('checking-for-update', () => {
+  sendStatusToWindow("Checking for updates...")
+})
+autoUpdater.on('error', (err) => {
+  sendStatusToWindow(`Error in updater ${err.toString()}`)
+})
+
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  sendStatusToWindow("Update downloaded...")
+
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart', 'Later'],
+    title: 'Application Update',
+    message: process.platform === 'win32' ? releaseNotes : releaseName,
+    detail:
+      'A new version has been downloaded. Restart the application to apply the updates.',
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall();
+  });
+});
+
+autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
+  sendStatusToWindow("Update available...")
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart', 'Later'],
+    title: 'update-available',
+    message: process.platform === 'win32' ? releaseNotes : releaseName,
+    detail: 'update-available',
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall();
+  });
 });

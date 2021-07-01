@@ -548,6 +548,7 @@ const WalletView = () => {
         // stakedAmount = stakedAmount.stakedAmount
         //  stakedValue = csprPrice*stakedAmount
       } catch (error) {
+        console.log('error = ', error);
         balance = 'Inactive account.';
       }
       wallets[index] = { ...wallet, balance, amount };
@@ -564,7 +565,7 @@ const WalletView = () => {
   useEffect(() => {
     if (
       data.wallets == 0 ||
-      (new Date() - data.walletsLastUpdate) / 1000 > 100 ||
+      (new Date() - data.walletsLastUpdate) / 1000 > 180 ||
       data.shouldUpdateWallets
     ) {
       console.log('fetching new dta');
@@ -576,7 +577,7 @@ const WalletView = () => {
       setWallets(data.wallets);
       setPageLoading(false);
     }
-  }, [shouldUpdate, selectedNetwork]);
+  }, [shouldUpdate, selectedNetwork, data]);
   const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
     useState(false);
@@ -627,36 +628,32 @@ const WalletView = () => {
         )}
         <Row gutter={48} justify="start" align="middle">
           {wallets?.length > 0 &&
-            wallets?.map((wallet, i) => {
-              return (
-                <Col span={8}>
-                  <Wallet
-                    key={i}
-                    setData={setData}
-                    data={data}
-                    setWallets={setWallets}
-                    wallets={wallets}
-                    shouldUpdate={shouldUpdate}
-                    setShouldUpdate={setShouldUpdate}
-                    db={db}
-                    id={wallet._id}
-                    tag={wallet.walletName}
-                    title={
-                      wallet?.balance?.toLocaleString().startsWith('Inactive')
-                        ? wallet.balance
-                        : `${wallet.balance.toLocaleString()} CSPR`
-                    }
-                    amount={
-                      wallet?.amount.toLocaleString().startsWith('')
-                        ? `${wallet.amount} USD`
-                        : `${wallet.amount.toLocaleString()} USD`
-                    }
-                    // secondaryAmount="0 USD"
-                    // secondaryTitle={`${wallet.stakedAmount} CSPR staked`}
-                  />
-                </Col>
-              );
-            })}
+            wallets?.map((wallet, i) => (
+              <Col span={8} key={i}>
+                <Wallet
+                  key={i}
+                  setData={setData}
+                  data={data}
+                  setWallets={setWallets}
+                  wallets={wallets}
+                  shouldUpdate={shouldUpdate}
+                  setShouldUpdate={setShouldUpdate}
+                  db={db}
+                  id={wallet._id}
+                  tag={wallet.walletName}
+                  title={
+                    wallet?.balance.toLocaleString().startsWith('Inactive')
+                      ? wallet.balance
+                      : `${wallet.balance.toFixed(5)} CSPR`
+                  }
+                  amount={
+                    wallet?.amount?.toLocaleString().startsWith('')
+                      ? `${wallet.amount.toFixed(5)} USD`
+                      : `${wallet.amount.toFixed(5).toLocaleString()} USD`
+                  }
+                />
+              </Col>
+            ))}
         </Row>
       </div>
     </>

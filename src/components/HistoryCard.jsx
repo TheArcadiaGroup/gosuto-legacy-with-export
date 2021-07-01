@@ -33,12 +33,9 @@ const HistoryCard = ({
                   lost ? 'history-card-amount-lose' : 'history-card-amount'
                 }
               >
-                {lost ? '-' : '+'} {amount}{' '}
-                {method == 'Sent' || method == 'Staking'
-                  ? `to ${to}`
-                  : `from ${from}`}
+                {lost ? '-' : '+'} {amount} {lost ? `to ${to}` : `from ${from}`}
               </div>
-              {/* { <div className="history-card-note">Note: {note}</div>} */}
+              {/* {<div className="history-card-note">Pending</div>} */}
             </div>
             <div
               className={
