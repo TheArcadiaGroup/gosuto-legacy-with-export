@@ -124,8 +124,6 @@ function App() {
     history: 0,
     wallets: 0,
     lastNetwork: 0,
-    shouldUpdateWallet: false,
-    shouldUpdateHistory: false,
     validatorWeight: 0,
     delegatedAmount: 0,
     delegationRewards: 0,
@@ -134,6 +132,8 @@ function App() {
     stakingLastUpdate: new Date(),
     cPrice: 0,
     accountBalance: 0,
+    shouldUpdateWallet: false,
+    shouldUpdateHistory: false,
     shouldUpdateStaking: false,
   });
   const [selectedWallet, setSelectedWallet] = useState();
