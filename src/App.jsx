@@ -122,6 +122,7 @@ function App() {
     walletsLastUpdate: new Date(),
     historyLastUpdate: new Date(),
     history: 0,
+    pendingHistory: [],
     wallets: 0,
     lastNetwork: 0,
     validatorWeight: 0,

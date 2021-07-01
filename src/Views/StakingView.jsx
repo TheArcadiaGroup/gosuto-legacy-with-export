@@ -345,6 +345,28 @@ const StakingView = () => {
       setStakeSuccessful(true);
       setIsStakePending(false);
       console.log('transfer res = ', result);
+      if (result?.data?.deploy_hash) {
+        const transaction = {
+          amount: parseFloat(amountToDelegate) * 1e9,
+          deployHash: result?.data?.deploy_hash,
+          fromAccount: wallet?.accountHex,
+          timestamp: new Date(),
+          toAccount: validatorPublicKey,
+          transferId: '',
+          method: 'Pending',
+        };
+        const pendingHistoryDB = Datastore.create({
+          filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+          timestampData: true,
+        });
+        await pendingHistoryDB.insert(transaction);
+        setData({
+          ...data,
+          pendingHistory: [...data.pendingHistory, transaction],
+          shouldUpdateHistory: true,
+          shouldUpdateStaking: true,
+        });
+      }
     } catch (error) {
       alert('error');
       alert(error);
@@ -448,7 +470,11 @@ const StakingView = () => {
           />
         </Col>
       </Row>
-      <StakingTable delegationOperations={delegationOperations} />
+      <StakingTable
+        delegationOperations={delegationOperations}
+        contextData={data}
+        setContextData={setData}
+      />
     </>
   );
 };

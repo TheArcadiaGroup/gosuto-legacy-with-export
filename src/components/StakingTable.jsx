@@ -14,7 +14,11 @@ import NetworkContext from '../contexts/NetworkContext';
 
 const { Option } = Select;
 
-const StakingTable = ({ delegationOperations }) => {
+const StakingTable = ({
+  delegationOperations,
+  contextData,
+  setContextData,
+}) => {
   const [selectedWallet, setContextSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
 
@@ -129,6 +133,10 @@ const StakingTable = ({ delegationOperations }) => {
         timestampData: true,
       });
       let wallet = await db.findOne({ _id: selectedWallet?._id });
+      console.log(
+        'parseFloat(amountToUndelegate) * 1e9 = ',
+        parseFloat(amountToUndelegate) * 1e9
+      );
       const output = await undelegate(
         // selectedWallet?.publicKeyUint8,
         wallet?.privateKeyUint8,
@@ -139,12 +147,34 @@ const StakingTable = ({ delegationOperations }) => {
       output?.data?.deploy_hash
         ? setResult(output?.data?.deploy_hash)
         : setResult(output.data);
-      console.log('transfer res = ', result);
+      console.log('transfer res = ', output);
       setIsPendingUndelegation(false);
       setUndelegationComplete(true);
+      if (result?.data?.deploy_hash) {
+        const transaction = {
+          amount: parseFloat(amountToUndelegate) * 1e9,
+          deployHash: output?.data?.deploy_hash,
+          toAccount: wallet?.accountHex,
+          timestamp: new Date(),
+          fromAccount: validatorPublicKey,
+          transferId: '',
+          method: 'Pending',
+          network: selectedNetwork,
+        };
+        const pendingHistoryDB = Datastore.create({
+          filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+          timestampData: true,
+        });
+        await pendingHistoryDB.insert(transaction);
+        setContextData({
+          ...contextData,
+          pendingHistory: [...contextData.pendingHistory, transaction],
+          shouldUpdateHistory: true,
+          shouldUpdateStaking: true,
+        });
+      }
     } catch (error) {
-      alert('error');
-      alert(error);
+      console.log('error = ', error);
     }
   };
   const undelegateModal = () => {

@@ -156,7 +156,7 @@ const Wallet = ({
     setWalletDetailsModalVisible(true);
   };
   const onChangeAmount = (value) => {
-    setAmountToSend(parseFloat(value));
+    if (parseFloat(value) >= 2.5) setAmountToSend(parseFloat(value));
   };
   const onChangeAddress = (event) => {
     setRecipient(event.target.value);
@@ -347,12 +347,41 @@ const Wallet = ({
       result?.data?.deploy_hash
         ? setResult(result?.data?.deploy_hash)
         : setResult(result.data);
+      console.log('selectedNetwork = ', selectedNetwork);
+      const transaction = {
+        amount: parseFloat(amountToSend) * 1e9,
+        deployHash: result?.data?.deploy_hash,
+        fromAccount: wallet?.accountHex,
+        timestamp: new Date(),
+        toAccount: recipient,
+        transferId: newNote,
+        method: 'Pending',
+        network: selectedNetwork,
+      };
       console.log('transfer res = ', result);
+      const pendingHistoryDB = Datastore.create({
+        filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+        timestampData: true,
+      });
+      if (result?.data?.deploy_hash) {
+        await pendingHistoryDB.insert(transaction);
+        setData({
+          ...data,
+          pendingHistory: [...data.pendingHistory, transaction],
+          shouldUpdateHistory: true,
+        });
+        setTimeout(() => {
+          console.log('updating wallets');
+          setData({
+            ...data,
+            wallets: 0,
+            shouldUpdateWallets: true,
+          });
+        }, 170000);
+      }
+
       setIsPendingTransfer(false);
       setSendComplete(true);
-      setTimeout(async () => {
-        const newBalance = await getAccountBalance(wallet?.accountHex);
-      }, 200000);
     } catch (error) {
       alert('error');
       alert(error);

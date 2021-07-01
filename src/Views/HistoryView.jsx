@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Tag, Spin } from 'antd';
 import HistoryCard from '../components/HistoryCard';
 // styles
-import './../App.global.scss';
+import '../App.global.scss';
 
 // fake data
 import fakeCards from '../HistoryCards.js';
@@ -10,6 +10,8 @@ import { getAccountHistory } from '../services/casper';
 import WalletContext from '../contexts/WalletContext';
 import DataContext from '../contexts/DataContext';
 import NetworkContext from '../contexts/NetworkContext';
+import { remote } from 'electron';
+import Datastore from 'nedb-promises';
 
 const HistoryView = () => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
@@ -36,12 +38,47 @@ const HistoryView = () => {
         100,
         selectedNetwork
       );
-      setHistory(fetchedHistory);
-      setCardsToDisplay(fetchedHistory);
+      console.log('pending history = ', data.pendingHistory);
+      let { pendingHistory } = data;
+      const pendingHistoryDB = Datastore.create({
+        filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+        timestampData: true,
+      });
+      if (data.pendingHistory.length === 0) {
+        console.log('lenght == 0');
+        pendingHistory = await pendingHistoryDB.find({});
+        console.log('pending history after database = ', pendingHistory);
+      }
+      pendingHistory = pendingHistory.filter(async (pendingOperation) => {
+        if (
+          JSON.stringify(fetchedHistory)?.indexOf(
+            pendingOperation.deployHash
+          ) >= 0
+        ) {
+          await pendingHistoryDB.remove({
+            deployHash: pendingOperation.deployHash,
+          });
+        }
+        console.log(
+          'pendingOperation.network === selectedNetwork = ',
+          JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
+            0 && pendingOperation.network === selectedNetwork
+        );
+        return (
+          JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
+            0 && pendingOperation.network === selectedNetwork
+        );
+      });
+      console.log('pending history after filter = ', pendingHistory);
+      console.log('fetchedHistory = ', fetchedHistory);
+      const allHistory = pendingHistory.concat(fetchedHistory);
+      console.log('allHistory = ', allHistory);
+      setHistory(allHistory);
+      setCardsToDisplay(allHistory);
       setPageLoading(false);
       setData({
         ...data,
-        history: fetchedHistory,
+        history: allHistory,
         historyLastUpdate: new Date(),
         shouldUpdateHistory: false,
       });
@@ -49,7 +86,7 @@ const HistoryView = () => {
 
     if (
       data.history == 0 ||
-      (new Date() - data.historyLastUpdate) / 1000 > 180 ||
+      (new Date() - data.historyLastUpdate) / 1000 > 1 ||
       data.shouldUpdateHistory
     ) {
       console.log('fetching new history');
@@ -101,12 +138,15 @@ const HistoryView = () => {
             date={new Date(card.timestamp).toLocaleString()}
             // fee={card.fee}
             id={card.deployHash}
-            amount={card.amount / 1e9 + ' CSPR'}
+            amount={`${card.amount / 1e9} CSPR`}
             transferId={card.transferId}
             from={card.fromAccount}
             to={card.toAccount}
             method={card.method}
-            lost={card.fromAccount == selectedWallet?.accountHash}
+            lost={
+              card.fromAccount == selectedWallet?.accountHash ||
+              card.fromAccount == selectedWallet?.accountHex
+            }
           />
         ))}
     </>

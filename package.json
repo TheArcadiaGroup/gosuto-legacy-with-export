@@ -42,6 +42,7 @@
     ],
     "afterSign": ".erb/scripts/Notarize.js",
     "mac": {
+      "icon": "./assets/gosuto-logo.icns",
       "target": [
         "dmg"
       ],

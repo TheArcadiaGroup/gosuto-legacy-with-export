@@ -260,6 +260,7 @@ export const getValidatorByDeploy = async (deployHash, network) => {
 
 export const getAccountHistory = async (accountHash, page, limit, network) => {
   try {
+    // accountHash = '993399c97855cec203c3b789d2996e950063e7b420090382ca2ac0ead0ce5cd4';
     network = network == 'casper-test' ? 'testnet' : 'mainnet';
     const url = `https://event-store-api-clarity-${network}.make.services/accounts/${accountHash}/transfers?page=${page}&limit=${limit}`;
     const response = await fetch(url);
