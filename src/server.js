@@ -158,12 +158,14 @@ server.post('/undelegate', async function (req, res) {
       validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
       amount: CLValue.u512(amountToUndelegate),
     });
+    let contractHash =
+      '73c9589d8bebbf6dc853707c5e157145c2d8ac8765f93ba3342a7cc2908b2346';
+    if (network === 'casper-test') {
+      contractHash =
+        '68e15f19eb37e6062c1a73d26acf3793bf39027713db6c4ff2baad6e7a5054f1';
+    }
     const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
-      Uint8Array.from(
-        Buffer.from(
-          '68e15f19eb37e6062c1a73d26acf3793bf39027713db6c4ff2baad6e7a5054f1','hex'
-        )
-      ),
+      Uint8Array.from(Buffer.from(contractHash, 'hex')),
       'undelegate',
       args
     );
