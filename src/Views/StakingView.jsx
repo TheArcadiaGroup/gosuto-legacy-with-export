@@ -345,7 +345,9 @@ const StakingView = () => {
       setStakeSuccessful(true);
       setIsStakePending(false);
       console.log('transfer res = ', result);
-      if (result?.data?.deploy_hash) {
+      if (result?.data) {
+        console.log('IN IF');
+        console.log('result?.data = ', result?.data);
         const transaction = {
           amount: parseFloat(amountToDelegate) * 1e9,
           deployHash: result?.data?.deploy_hash,
