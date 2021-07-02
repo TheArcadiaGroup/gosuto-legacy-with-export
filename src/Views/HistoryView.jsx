@@ -20,7 +20,7 @@ const HistoryView = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const filters = ['All', 'Sent', 'Received', 'Staking'];
   const [selectedTag, setSelectedTag] = useState('All');
-  const [cardsToDisplay, setCardsToDisplay] = useState();
+  const [cardsToDisplay, setCardsToDisplay] = useState([]);
   const [history, setHistory] = useState();
   const handleTagClick = (filter) => {
     setSelectedTag(filter);
@@ -102,14 +102,14 @@ const HistoryView = () => {
         'history duration = ',
         (new Date() - data.historyLastUpdate) / 1000
       );
-      if (selectedWallet.accountHex) getHistory();
+      if (selectedWallet?.accountHash) getHistory();
     } else {
       console.log(
         'history duration = ',
         (new Date() - data.historyLastUpdate) / 1000
       );
       console.log('not fetching new history');
-      if (selectedWallet.accountHash) {
+      if (selectedWallet?.accountHash) {
         setHistory(data.history);
         setCardsToDisplay(data.history);
         setPageLoading(false);
@@ -140,12 +140,13 @@ const HistoryView = () => {
           />
         </>
       )}
-      {cardsToDisplay &&
+      {console.log('cardsToDisplay = ', cardsToDisplay)}
+      {cardsToDisplay.length > 0 &&
         cardsToDisplay.map((card, index) => (
           <HistoryCard
             key={index}
             selectedNetwork={selectedNetwork}
-            date={new Date(card.timestamp).toLocaleString()}
+            date={new Date(card?.timestamp).toLocaleString()}
             // fee={card.fee}
             id={card.deployHash}
             amount={`${card.amount / 1e9} CSPR`}

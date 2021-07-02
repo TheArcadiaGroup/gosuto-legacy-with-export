@@ -187,4 +187,10 @@ server.post('/undelegate', async function (req, res) {
   }
 });
 
+server.get('/deploy', async function (req, res) {
+  const client = new CasperServiceByJsonRPC();
+  const deployResult = await client.getDeployInfo(req.body.deployHash);
+  res.send(deployResult.execution_results[0].result);
+});
+
 module.exports = server;
