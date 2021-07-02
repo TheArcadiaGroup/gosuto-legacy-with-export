@@ -49,7 +49,8 @@ const HistoryView = () => {
         pendingHistory = await pendingHistoryDB.find({});
         console.log('pending history after database = ', pendingHistory);
       }
-      pendingHistory = pendingHistory.filter(async (pendingOperation) => {
+      let newPending = [];
+      pendingHistory.forEach(async (pendingOperation) => {
         if (
           JSON.stringify(fetchedHistory)?.indexOf(
             pendingOperation.deployHash
@@ -62,16 +63,23 @@ const HistoryView = () => {
         console.log(
           'pendingOperation.network === selectedNetwork = ',
           JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
-            0 && pendingOperation.network === selectedNetwork
+            0 &&
+            pendingOperation.network == selectedNetwork &&
+            pendingOperation.wallet == selectedWallet.accountHex
         );
-        return (
+        if (
           JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
-            0 && pendingOperation.network === selectedNetwork
-        );
+            0 &&
+          pendingOperation.network == selectedNetwork &&
+          pendingOperation.wallet == selectedWallet.accountHex
+        ) {
+          newPending.push(pendingOperation);
+        }
       });
-      console.log('pending history after filter = ', pendingHistory);
+      newPending = newPending.reverse();
+      console.log('pending history after filter = ', newPending);
       console.log('fetchedHistory = ', fetchedHistory);
-      const allHistory = pendingHistory.concat(fetchedHistory);
+      const allHistory = newPending.concat(fetchedHistory);
       console.log('allHistory = ', allHistory);
       setHistory(allHistory);
       setCardsToDisplay(allHistory);
@@ -94,16 +102,18 @@ const HistoryView = () => {
         'history duration = ',
         (new Date() - data.historyLastUpdate) / 1000
       );
-      getHistory();
+      if (selectedWallet.accountHex) getHistory();
     } else {
       console.log(
         'history duration = ',
         (new Date() - data.historyLastUpdate) / 1000
       );
       console.log('not fetching new history');
-      setHistory(data.history);
-      setCardsToDisplay(data.history);
-      setPageLoading(false);
+      if (selectedWallet.accountHash) {
+        setHistory(data.history);
+        setCardsToDisplay(data.history);
+        setPageLoading(false);
+      }
     }
   }, [selectedNetwork]);
   return (

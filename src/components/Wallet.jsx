@@ -357,6 +357,7 @@ const Wallet = ({
         transferId: newNote,
         method: 'Pending',
         network: selectedNetwork,
+        wallet: selectedWallet.accountHex,
       };
       console.log('transfer res = ', result);
       const pendingHistoryDB = Datastore.create({

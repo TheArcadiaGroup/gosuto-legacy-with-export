@@ -333,29 +333,31 @@ const StakingView = () => {
       const wallet = await db.findOne({ _id: selectedDelegationWallet });
       console.log('wallet = ', wallet);
       console.log('selectedDelegationWallet = ', selectedDelegationWallet);
-      const result = await delegate(
+      const delegationResult = await delegate(
         wallet?.privateKeyUint8,
         validatorPublicKey,
         parseFloat(amountToDelegate) * 1e9,
         selectedNetwork
       );
-      result?.data?.deploy_hash
-        ? setResult(result?.data?.deploy_hash)
-        : setResult(result.data);
+      delegationResult?.data?.deploy_hash
+        ? setResult(delegationResult?.data?.deploy_hash)
+        : setResult(delegationResult.data);
       setStakeSuccessful(true);
       setIsStakePending(false);
-      console.log('transfer res = ', result);
-      if (result?.data) {
+      console.log('delegationResult = ', delegationResult);
+      if (delegationResult?.data?.toUpperCase().indexOf('ERROR') < 0) {
         console.log('IN IF');
-        console.log('result?.data = ', result?.data);
+        console.log('delegationResult = ', delegationResult?.data);
         const transaction = {
           amount: parseFloat(amountToDelegate) * 1e9,
-          deployHash: result?.data?.deploy_hash,
+          deployHash: delegationResult?.data,
           fromAccount: wallet?.accountHex,
           timestamp: new Date(),
           toAccount: validatorPublicKey,
           transferId: '',
           method: 'Pending',
+          wallet: selectedWallet.accountHex,
+          network: selectedNetwork,
         };
         const pendingHistoryDB = Datastore.create({
           filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
