@@ -245,16 +245,23 @@ export const getUserDelegatedAmount = async (publicKey, network) => {
 };
 
 export const getValidatorByDeploy = async (deployHash, network) => {
-  const casperService = new CasperServiceByJsonRPC(
-    getEndpointByNetwork(network)
-  );
-  const { session } = (await casperService.getDeployInfo(deployHash)).deploy;
+  try {
+    const casperService = new CasperServiceByJsonRPC(
+      getEndpointByNetwork(network)
+    );
+    console.log('in deployHash =', deployHash)
+    const { session } = (await casperService.getDeployInfo(deployHash)).deploy;
 
-  return session.ModuleBytes
-    ? session.ModuleBytes?.args[2][1]?.parsed
-    : session.StoredContractByHash
-    ? session.StoredContractByHash?.args[1][1]?.parsed
-    : '';
+    return session.ModuleBytes
+      ? session.ModuleBytes?.args[2][1]?.parsed
+      : session.StoredContractByHash
+      ? session.StoredContractByHash?.args[1][1]?.parsed
+      : '';
+  } catch (error) {
+    console.log('error in get validator = ', error);
+    return '';
+  }
+
 };
 
 
