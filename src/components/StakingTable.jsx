@@ -150,16 +150,17 @@ const StakingTable = ({
       console.log('transfer res = ', output);
       setIsPendingUndelegation(false);
       setUndelegationComplete(true);
-      if (result?.data?.deploy_hash) {
+      if (output?.data?.toUpperCase().indexOf('ERROR') < 0) {
         const transaction = {
           amount: parseFloat(amountToUndelegate) * 1e9,
-          deployHash: output?.data?.deploy_hash,
+          deployHash: output?.data,
           toAccount: wallet?.accountHex,
           timestamp: new Date(),
           fromAccount: validatorPublicKey,
           transferId: '',
           method: 'Pending',
           network: selectedNetwork,
+          wallet: selectedWallet.accountHex,
         };
         const pendingHistoryDB = Datastore.create({
           filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
