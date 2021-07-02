@@ -67,13 +67,11 @@
       ]
     },
     "win": {
-      "icon": "./assets/gosuto-logo.ico",
       "target": [
         "nsis"
       ]
     },
     "linux": {
-      "icon": "./assets/gosuto-logo.ico",
       "target": [
         "AppImage"
       ],
