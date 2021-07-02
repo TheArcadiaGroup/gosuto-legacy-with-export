@@ -29,6 +29,7 @@
       "prettier --ignore-path .eslintignore --single-quote --write"
     ]
   },
+
   "build": {
     "productName": "Gosuto",
     "appId": "agency.arcadia.gosuto-wallet",
