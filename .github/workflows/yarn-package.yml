@@ -1,8 +1,5 @@
 name: CI ALL
-on:
-  release:
-    types:
-      - published
+on: [push]
 
 jobs:
 
