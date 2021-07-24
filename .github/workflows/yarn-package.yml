@@ -21,7 +21,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
-
+      - name : machine echo $HOME
+        run : "echo $HOME"
+      - name : machine ls $HOME
+        working-directory : "."
+        run : "ls -la $HOME"
       - name: Install dependencies
         run: yarn
       - name: Install dependencies
