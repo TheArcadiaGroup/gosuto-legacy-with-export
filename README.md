@@ -36,7 +36,7 @@ yarn
 
 ## Starting Development
 
-Start the app in the `dev` environment:
+Start the app in the `dev` environment :
 
 ```bash
 yarn start
