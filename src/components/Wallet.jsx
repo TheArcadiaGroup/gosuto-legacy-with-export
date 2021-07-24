@@ -16,9 +16,12 @@ import {
   Space,
   Spin,
 } from 'antd';
-import GeneralModal from './GeneralModal';
-const path = require('path');
 import TextArea from 'antd/lib/input/TextArea';
+import { Keys } from 'casper-client-sdk';
+import { remote } from 'electron';
+import Datastore from 'nedb-promises';
+import axios from 'axios';
+import GeneralModal from './GeneralModal';
 
 // images
 import vault from '../../assets/icons/vault-logo.png';
@@ -27,11 +30,11 @@ import vault from '../../assets/icons/vault-logo.png';
 import './components.global.scss';
 import '../App.global.scss';
 
-import Datastore from 'nedb-promises';
-import { remote } from 'electron';
 import WalletContext from '../contexts/WalletContext';
 import { getAccountBalance, transfer } from '../services/casper';
 import NetworkContext from '../contexts/NetworkContext';
+
+const path = require('path');
 
 const { Option } = Select;
 
@@ -85,7 +88,7 @@ const Wallet = ({
             filename: `${remote.app.getPath('userData')}/wallets.db`,
             timestampData: true,
           });
-          let wallet = await db.findOne({ _id: id });
+          const wallet = await db.findOne({ _id: id });
           localStorage.setItem('defaultWallet', JSON.stringify(wallet));
           setSelectedWallet(wallet);
           setData({
@@ -125,7 +128,7 @@ const Wallet = ({
       >
         Edit
       </Menu.Item>
-      <Menu.Item key="3" onClick={async () => await removeWallet()}>
+      <Menu.Item key="3" onClick={async () => removeWallet()}>
         Remove
       </Menu.Item>
     </Menu>
@@ -326,6 +329,41 @@ const Wallet = ({
 
   const sendConfirmation = () => {};
 
+  const onPrivateKeyExport = async () => {
+    const port = parseInt(
+      global.location.search.substr(
+        global.location.search.indexOf('=') + 1,
+        global.location.search.length
+      ),
+      10
+    );
+    const wallet = await db.findOne({ _id: id });
+    const ret = await axios.post(`http://localhost:${port}/pem`, {
+      privateKey: wallet.privateKeyUint8,
+    });
+    console.log('ret = ', ret.data);
+    const { dialog } = remote;
+    const options = {
+      title: 'Save file',
+      defaultPath: wallet?.walletName,
+      buttonLabel: 'Save',
+
+      filters: [
+        { name: 'pem', extensions: ['pem'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+    };
+    dialog
+      .showSaveDialog(null, options)
+      .then(({ filePath }) => {
+        const fs = require('fs');
+        fs.writeFileSync(filePath, ret.data, 'utf-8');
+      })
+      .catch((err) => {
+        console.log('error =', err);
+      });
+  };
+
   const onSendConfirm = async () => {
     try {
       setIsPendingTransfer(true);
@@ -402,13 +440,14 @@ const Wallet = ({
   const viewMnemonicModalSystem = () => {
     const [wallet, setWallet] = useState();
     const [newWalletName, setNewWalletName] = useState('');
+    console.log('wallet = ', wallet);
     useEffect(() => {
       async function getWalletInfo() {
         const db = Datastore.create({
           filename: `${remote.app.getPath('userData')}/wallets.db`,
           timestampData: true,
         });
-        let wallet = await db.findOne({ _id: id });
+        const wallet = await db.findOne({ _id: id });
         console.log('found wallet = ', wallet);
         setWallet(wallet);
         setNewWalletName(wallet.walletName);
@@ -421,17 +460,17 @@ const Wallet = ({
           filename: `${remote.app.getPath('userData')}/wallets.db`,
           timestampData: true,
         });
-        let wallet = await db.findOne({ _id: id });
+        const wallet = await db.findOne({ _id: id });
         wallet.walletName = newWalletName;
         await db.update({ _id: id }, { ...wallet, walletName: newWalletName });
         setWalletDetailsModalVisible(false);
-        notification['success']({
+        notification.success({
           message: 'Success',
           description: 'Wallet name successfully updated',
         });
         setShouldUpdate(!shouldUpdate);
       } catch (error) {
-        notification['error']({
+        notification.error({
           message: 'Error',
           description: error,
         });
@@ -509,17 +548,34 @@ const Wallet = ({
                 />
 
                 {shouldRevealPrivateKey ? (
-                  <Button
-                    onClick={() => copyValue(wallet.privateKey)}
-                    className="send-button-no-mt"
-                    style={{ margin: 'auto', display: 'block' }}
-                  >
-                    COPY
-                  </Button>
+                  <>
+                    <div style={{ display: 'flex' }}>
+                      <Button
+                        onClick={() => copyValue(wallet.privateKey)}
+                        className="send-button"
+                        style={{ margin: 'auto', display: 'block' }}
+                      >
+                        COPY
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          await onPrivateKeyExport();
+                        }}
+                        className="send-button"
+                        style={{
+                          margin: 'auto',
+                          display: 'block',
+                          marginTop: '10px',
+                        }}
+                      >
+                        EXPORT PEM
+                      </Button>
+                    </div>
+                  </>
                 ) : (
                   <Button
                     onClick={() => setShouldRevealPrivateKey(true)}
-                    className="send-button-no-mt"
+                    className="send-button"
                     style={{ margin: 'auto', display: 'block' }}
                   >
                     Show private key
@@ -616,7 +672,6 @@ const Wallet = ({
         footer={[
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Button type="primary" className="send-button">
-              {}
               Next
             </Button>
           </div>,

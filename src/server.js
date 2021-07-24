@@ -6,12 +6,12 @@ const {
   CasperClient,
   PublicKey,
   DeployUtil,
-
   Keys,
   RuntimeArgs,
   CLValue,
   BalanceServiceByJsonRPC,
 } = require('casper-client-sdk');
+const { default: axios } = require('axios');
 const { casperDelegationContractHexCode } = require('./utils/casper');
 
 server.use(express.json());
@@ -191,6 +191,55 @@ server.get('/deploy', async function (req, res) {
   const client = new CasperServiceByJsonRPC();
   const deployResult = await client.getDeployInfo(req.body.deployHash);
   res.send(deployResult.execution_results[0].result);
+});
+
+server.post('/sign', async function (req, res) {
+  try {
+    let { deploy, privateKey, callbackURL } = req.body;
+    console.log('received callbackURL = ', callbackURL);
+    deploy = JSON.parse(deploy);
+    const client = new CasperClient(getEndpointByNetwork(''));
+    // client.signDeploy
+    const ll = JSON.stringify(privateKey)
+      .replace('{', '')
+      .replace('}', '')
+      .split(',');
+    const newll = ll.map((val) => {
+      return parseInt(val.substr(val.indexOf(':') + 1, val.length));
+    });
+    privateKey = Uint8Array.from(newll);
+
+    const publicKey = Keys.Ed25519.privateToPublicKey(privateKey);
+    const keyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
+    console.log('got keypair', keyPair);
+    const testFromJson = DeployUtil.deployFromJson(deploy);
+    const signedDeploy = client.signDeploy(testFromJson, keyPair);
+    console.log('signedDeploy = ', signedDeploy);
+    await axios.post(callbackURL, {
+      signedDeploy: DeployUtil.deployToJson(signedDeploy),
+    });
+    res.send({ signedDeploy });
+  } catch (error) {
+    console.log('error = ', error);
+  }
+});
+
+server.post('/pem', async (req, res) => {
+  let { privateKey } = req.body;
+  const ll = JSON.stringify(privateKey)
+    .replace('{', '')
+    .replace('}', '')
+    .split(',');
+  const newll = ll.map((val) => {
+    return parseInt(val.substr(val.indexOf(':') + 1, val.length));
+  });
+  privateKey = Uint8Array.from(newll);
+
+  const publicKey = Keys.Ed25519.privateToPublicKey(privateKey);
+  const keyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
+
+  const pem = keyPair.exportPrivateKeyInPem();
+  res.send(pem);
 });
 
 module.exports = server;
