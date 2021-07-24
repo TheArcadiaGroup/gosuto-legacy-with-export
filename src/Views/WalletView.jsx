@@ -110,23 +110,23 @@ const WalletView = () => {
       const mnemonicToUse = customMnemonic || cleanMnemonic;
       console.log(mnemonicToUse);
       currentMnemonicSeed = await bip39.mnemonicToSeed(mnemonicToUse);
-      hdWallet = new CasperClient().newHdWallet(
-        Uint8Array.from(currentMnemonicSeed)
-      );
+      // hdWallet = new CasperClient().newHdWallet(
+      //   Uint8Array.from(currentMnemonicSeed)
+      // );
       const nw = EthereumHDKey.fromMasterSeed(currentMnemonicSeed);
       const path = "m/44'/506'/0'/0/0";
-      const eth = nacl.sign.keyPair.fromSeed(
+      const keyPairFromSeed = nacl.sign.keyPair.fromSeed(
         Uint8Array.from(currentMnemonicSeed.subarray(0, 32)).valueOf()
       );
-      edKey = new Keys.Ed25519(eth);
+      edKey = new Keys.Ed25519(keyPairFromSeed);
 
-      console.log('eth public hex = ', edKey.accountHex());
+      console.log('keyPairFromSeed public hex = ', edKey.accountHex());
       console.log(
-        'eth account hash = ',
+        'keyPairFromSeed account hash = ',
         Buffer.from(edKey.accountHash(), 'hex').toString('hex')
       );
       console.log(
-        'eth private key = ',
+        'keyPairFromSeed private key = ',
         Buffer.from(edKey.privateKey, 'hex').toString('hex')
       );
       // accHex = hdWallet.publicKey().toString('hex');
@@ -173,15 +173,25 @@ const WalletView = () => {
       mnemonic != '' &&
       clicked
     ) {
-      generateWallet(customMnemonic).then(
-        ({ accHex, accHash, privateKey, publicKeyUint8, privateKeyUint8 }) => {
-          setAccountHex(accHex);
-          setAccountHash(accHash);
-          setPrivateKey(privateKey);
-          setPrivateKeyUint8(privateKeyUint8),
-            setPublicKeyUint8(publicKeyUint8);
-        }
-      );
+      generateWallet(customMnemonic)
+        .then(
+          ({
+            accHex,
+            accHash,
+            privateKey,
+            publicKeyUint8,
+            privateKeyUint8,
+          }) => {
+            setAccountHex(accHex);
+            setAccountHash(accHash);
+            setPrivateKey(privateKey);
+            setPrivateKeyUint8(privateKeyUint8),
+              setPublicKeyUint8(publicKeyUint8);
+          }
+        )
+        .catch((err) => {
+          console.log('Error ', err);
+        });
     }
     return (
       <div>
@@ -314,7 +324,6 @@ const WalletView = () => {
       let publicKeyUint8;
       let keyPair;
       privateKeyUint8 = parseAlgorithm(fileContents).secretKeyBase64;
-      alert(algorithm);
       if (algorithm === 'ed25519') {
         publicKeyUint8 = Keys.Ed25519.privateToPublicKey(
           Keys.Ed25519.parsePrivateKey(privateKeyUint8)

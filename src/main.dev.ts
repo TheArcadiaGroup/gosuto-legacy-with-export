@@ -30,7 +30,6 @@ const url = `${rs}/update/${process.platform}/${app.getVersion()}`;
 // autoUpdater.setFeedURL(url);
 autoUpdater.checkForUpdatesAndNotify();
 
-
 let mainWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -57,6 +56,27 @@ const installExtensions = async () => {
     )
     .catch(console.log);
 };
+let deeplinkingUrl;
+const gotTheLock = app.requestSingleInstanceLock();
+if (gotTheLock) {
+  app.on('second-instance', (e, argv) => {
+    // Someone tried to run a second instance, we should focus our window.
+
+    // Protocol handler for win32
+    // argv: An array of the second instance’s (command line / deep linked) arguments
+    if (process.platform === 'win32') {
+      // Keep only command line / deep linked arguments
+      deeplinkingUrl = argv.slice(1);
+    }
+
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+} else {
+  app.quit();
+}
 
 const createWindow = async () => {
   if (
@@ -65,6 +85,12 @@ const createWindow = async () => {
   ) {
     await installExtensions();
   }
+
+  if (process.platform == 'win32') {
+    // Keep only command line / deep linked arguments
+    deeplinkingUrl = process.argv.slice(1)
+  }
+
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -142,9 +168,31 @@ const sendStatusToWindow = (text) => {
   if (mainWindow) {
     mainWindow.webContents.send('message', text);
   }
-}
+};
 
 app.whenReady().then(createWindow).catch(console.log);
+app.on('will-finish-launching', function() {
+  // Protocol handler for osx
+  app.on('open-url', function(event, data) {
+    event.preventDefault();
+    deeplinkingUrl = data;
+    console.log('event!!!');
+    console.log(data);
+    const sendDeepLinkToWindow = (text): void => {
+      log.info(text);
+      if (mainWindow) {
+        mainWindow.webContents.send('deep-link', text);
+      }
+    };
+
+    sendDeepLinkToWindow(deeplinkingUrl);
+  });
+
+})
+
+// This will catch clicks on links such as <a href="foobar://abc=1">open in foobar</a>
+
+app.setAsDefaultProtocolClient('gosuto');
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
@@ -153,14 +201,14 @@ app.on('activate', () => {
 });
 
 autoUpdater.on('checking-for-update', () => {
-  sendStatusToWindow("Checking for updates...")
-})
+  sendStatusToWindow('Checking for updates...');
+});
 autoUpdater.on('error', (err) => {
-  sendStatusToWindow(`Error in updater ${err.toString()}`)
-})
+  sendStatusToWindow(`Error in updater ${err.toString()}`);
+});
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  sendStatusToWindow("Update downloaded...")
+  sendStatusToWindow('Update downloaded...');
 
   const dialogOpts = {
     type: 'info',
@@ -177,7 +225,7 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 });
 
 autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
-  sendStatusToWindow("Update available...")
+  sendStatusToWindow('Update available...');
   const dialogOpts = {
     type: 'info',
     buttons: ['Restart', 'Later'],
@@ -190,3 +238,4 @@ autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
     if (returnValue.response === 0) autoUpdater.quitAndInstall();
   });
 });
+

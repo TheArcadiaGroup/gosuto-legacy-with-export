@@ -35,9 +35,10 @@ import PasswordView from './Views/PasswordView';
 import WalletContext from './contexts/WalletContext';
 import NetworkContext from './contexts/NetworkContext';
 import DataContext from './contexts/DataContext';
-// var sss = require('app');
-// alert(sss.getVersion());
-const { remote } = require('electron');
+import GeneralModal from './components/GeneralModal';
+import SignDeployModal from './components/SignDeployModal';
+// import { signDeploy } from 'casper-client-sdk/dist/lib/DeployUtil';
+const { ipcRenderer, remote } = require('electron');
 // const { autoUpdater } = remote;
 // // Auto updater
 // const server = 'https://gosuto-rs.herokuapp.com';
@@ -96,8 +97,12 @@ const { remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
+
 function App() {
   const [text, setText] = useState('');
+  const [deepLinkRet, setDeepLinkRet] = useState('');
+  const [signatureRequestData, setSignatureRequestData] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const getLatestBlockInfo = async () => {
     const casperService = new CasperServiceByJsonRPC(
       'http://3.14.161.135:7777/rpc'
@@ -106,6 +111,28 @@ function App() {
     setText(latestBlock.block.header.height);
     return latestBlock.block.header.height;
   };
+
+  useEffect(() => {
+    ipcRenderer.on('deep-link', (event, args) => {
+      // console.log('IN DEEPLINK');
+      // console.log('event = ', event);
+      console.log('args = ', decodeURIComponent(args));
+      const data = decodeURIComponent(args);
+      const deploy = data
+        .substr(0, data.indexOf('?callback'))
+        .replace('gosuto://', '');
+      console.log('deploy = ', deploy);
+      const callbackURL = data
+        .substr(data.indexOf('?callback') + 10, data.length)
+        .trim();
+      console.log('callbackURL = ', callbackURL);
+      setSignatureRequestData({ deploy, callbackURL });
+      setIsModalVisible(true);
+    });
+    return () => {
+      ipcRenderer.removeAllListeners('deep-link');
+    };
+  }, []);
 
   // const getAccountBalance = async () => {
   //   const casperService = new CasperServiceByJsonRPC('http://3.14.161.135:7777/rpc');
@@ -279,6 +306,27 @@ function App() {
                   </Menu>
                 </Sider>
                 <Content className="site-layout-background">
+                  <GeneralModal
+                    visible={isModalVisible}
+                    changeVisibility={setIsModalVisible}
+                    // children={signDeploySystem()}
+                    // customOnCancelLogic={customOnCancelLogic}
+                    footer={[
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center' }}
+                      >
+                        <Button type="primary" className="send-button">
+                          Next
+                        </Button>
+                      </div>,
+                    ]}
+                  >
+                    <SignDeployModal
+                      deploy={signatureRequestData.deploy}
+                      callbackURL={signatureRequestData.callbackURL}
+                    />
+                  </GeneralModal>
+                  ;
                   <Switch>
                     {/* <Route path="/swap" component={SwapView} /> */}
                     <Route path="/staking" component={StakingView} />
