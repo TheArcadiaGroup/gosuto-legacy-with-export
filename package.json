@@ -92,16 +92,7 @@
     "extraResources": [
       "./assets/**",
       "./src/casperService.js"
-    ],
-    "publish": {
-      "provider": "github",
-      "private": true,
-      "owner": "TheArcadiaGroup",
-      "repo": "gosuto-desktop",
-      "token": "ba4893f070fa8eafd1691ec18251084c0238d5b7",
-      "vPrefixedTagName": true,
-      "publishAutoUpdate": true
-    }
+    ]
   },
   "protocols": {
     "name": "gosuto-protocol",
