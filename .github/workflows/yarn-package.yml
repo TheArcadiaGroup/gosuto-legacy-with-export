@@ -22,6 +22,6 @@ jobs:
       - name : machine echo $HOME
         run : "echo $HOME"
       - name: Install dependencies
-        run: yarn
+        run: yarn || "ls"
       - name: Build
         run: yarn package
