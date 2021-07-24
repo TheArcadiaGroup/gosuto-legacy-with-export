@@ -1,0 +1,29 @@
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+
+  build:
+    name: Build <App name>
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn package
