@@ -4,8 +4,8 @@
   "description": "Gosuto wallet for Casper Network",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
-    "build:main": "NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
-    "build:renderer": "NODE_ENV=production webpack --config ./.erb/configs/webpack.config.renderer.prod.babel.js",
+    "build:main": "./node_modules/.bin/cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
+    "build:renderer": "./node_modules/.bin/cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.renderer.prod.babel.js",
     "rebuild": "electron-builder install-app-deps",
     "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "package": "rm -rf src/dist && rm -rf src/release && yarn build:main && yarn build:renderer && electron-builder -mwl --publish onTagOrDraft",
