@@ -16,7 +16,7 @@
       })();
       const { ipcRenderer } = require('electron');
       ipcRenderer.on('message', (event, text) => {
-        document.title = text;
+        // document.title = text;
         console.log('Message from updater: ', text);
       });
     </script>
