@@ -165,7 +165,7 @@ const HistoryView = () => {
           />
         ))}
 
-      {cardsToDisplay.length === 0 && (
+      {cardsToDisplay.length  === 0 && !pageLoading && (
         <>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
         </>
