@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Tag, Spin } from 'antd';
+import { Tag, Spin, Empty } from 'antd';
 import HistoryCard from '../components/HistoryCard';
 // styles
 import '../App.global.scss';
@@ -32,64 +32,68 @@ const HistoryView = () => {
   };
   useEffect(() => {
     async function getHistory() {
-      const fetchedHistory = await getAccountHistory(
-        selectedWallet?.accountHash,
-        1,
-        100,
-        selectedNetwork
-      );
-      console.log('pending history = ', data.pendingHistory);
-      let { pendingHistory } = data;
-      const pendingHistoryDB = Datastore.create({
-        filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
-        timestampData: true,
-      });
-      if (data.pendingHistory.length === 0) {
-        console.log('lenght == 0');
-        pendingHistory = await pendingHistoryDB.find({});
-        console.log('pending history after database = ', pendingHistory);
-      }
-      let newPending = [];
-      pendingHistory.forEach(async (pendingOperation) => {
-        if (
-          JSON.stringify(fetchedHistory)?.indexOf(
-            pendingOperation.deployHash
-          ) >= 0
-        ) {
-          await pendingHistoryDB.remove({
-            deployHash: pendingOperation.deployHash,
-          });
+      try {
+        const fetchedHistory = await getAccountHistory(
+          selectedWallet?.accountHash,
+          1,
+          100,
+          selectedNetwork
+        );
+        console.log('pending history = ', data.pendingHistory);
+        let { pendingHistory } = data;
+        const pendingHistoryDB = Datastore.create({
+          filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+          timestampData: true,
+        });
+        if (data.pendingHistory.length === 0) {
+          console.log('lenght == 0');
+          pendingHistory = await pendingHistoryDB.find({});
+          console.log('pending history after database = ', pendingHistory);
         }
-        console.log(
-          'pendingOperation.network === selectedNetwork = ',
-          JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
-            0 &&
+        let newPending = [];
+        pendingHistory.forEach(async (pendingOperation) => {
+          if (
+            JSON.stringify(fetchedHistory)?.indexOf(
+              pendingOperation?.deployHash
+            ) >= 0
+          ) {
+            await pendingHistoryDB.remove({
+              deployHash: pendingOperation?.deployHash,
+            });
+          }
+          console.log(
+            'pendingOperation.network === selectedNetwork = ',
+            JSON.stringify(fetchedHistory)?.indexOf(
+              pendingOperation?.deployHash
+            ) < 0 &&
+              pendingOperation.network == selectedNetwork &&
+              pendingOperation.wallet == selectedWallet.accountHex
+          );
+          if (
+            JSON.stringify(fetchedHistory)?.indexOf(
+              pendingOperation?.deployHash
+            ) < 0 &&
             pendingOperation.network == selectedNetwork &&
             pendingOperation.wallet == selectedWallet.accountHex
-        );
-        if (
-          JSON.stringify(fetchedHistory)?.indexOf(pendingOperation.deployHash) <
-            0 &&
-          pendingOperation.network == selectedNetwork &&
-          pendingOperation.wallet == selectedWallet.accountHex
-        ) {
-          newPending.push(pendingOperation);
-        }
-      });
-      newPending = newPending.reverse();
-      console.log('pending history after filter = ', newPending);
-      console.log('fetchedHistory = ', fetchedHistory);
-      const allHistory = newPending.concat(fetchedHistory);
-      console.log('allHistory = ', allHistory);
-      setHistory(allHistory);
-      setCardsToDisplay(allHistory);
-      setPageLoading(false);
-      setData({
-        ...data,
-        history: allHistory,
-        historyLastUpdate: new Date(),
-        shouldUpdateHistory: false,
-      });
+          ) {
+            newPending.push(pendingOperation);
+          }
+        });
+        newPending = newPending.reverse();
+        console.log('pending history after filter = ', newPending);
+        console.log('fetchedHistory = ', fetchedHistory);
+        const allHistory = newPending.concat(fetchedHistory);
+        console.log('allHistory = ', allHistory);
+        setHistory(allHistory);
+        setCardsToDisplay(allHistory);
+        setPageLoading(false);
+        setData({
+          ...data,
+          history: allHistory,
+          historyLastUpdate: new Date(),
+          shouldUpdateHistory: false,
+        });
+      } catch (error) {}
     }
 
     if (
@@ -160,6 +164,12 @@ const HistoryView = () => {
             }
           />
         ))}
+
+      {cardsToDisplay.length === 0 && (
+        <>
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        </>
+      )}
     </>
   );
 };
