@@ -13,7 +13,11 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 if (process.env.NODE_ENV === 'production') {
   CheckNodeEnv('development');
 }
-
+const babelOptions = {
+  parserOpts: {
+    allowReturnOutsideFunction: true,
+  },
+};
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
 const dllDir = path.join(__dirname, '../dll');
@@ -25,7 +29,10 @@ const requiredByDLLConfig = module.parent.filename.includes(
 /**
  * Warn if the DLL is not built
  */
-if (!requiredByDLLConfig && !(fs.existsSync(dllDir) && fs.existsSync(manifest))) {
+if (
+  !requiredByDLLConfig &&
+  !(fs.existsSync(dllDir) && fs.existsSync(manifest))
+) {
   console.log(
     chalk.black.bgYellow.bold(
       'The DLL files are missing. Sit back while we build them for you with "yarn build-dll"'
@@ -61,9 +68,8 @@ export default merge(baseConfig, {
           {
             loader: require.resolve('babel-loader'),
             options: {
-              plugins: [
-                require.resolve('react-refresh/babel'),
-              ].filter(Boolean),
+              parserOpts: { allowReturnOutsideFunction: true },
+              plugins: [require.resolve('react-refresh/babel')].filter(Boolean),
             },
           },
         ],
@@ -211,7 +217,6 @@ export default merge(baseConfig, {
     ],
   },
   plugins: [
-
     requiredByDLLConfig
       ? null
       : new webpack.DllReferencePlugin({
@@ -272,13 +277,13 @@ export default merge(baseConfig, {
     },
     before() {
       console.log('Starting Main Process...');
-        spawn('npm', ['run', 'start:main'], {
-          shell: true,
-          env: process.env,
-          stdio: 'inherit',
-        })
-          .on('close', (code) => process.exit(code))
-          .on('error', (spawnError) => console.error(spawnError));
+      spawn('npm', ['run', 'start:main'], {
+        shell: true,
+        env: process.env,
+        stdio: 'inherit',
+      })
+        .on('close', (code) => process.exit(code))
+        .on('error', (spawnError) => console.error(spawnError));
     },
   },
 });
