@@ -46,6 +46,7 @@ const Wallet = ({
   setData,
   wallet,
   data,
+  casperPrice,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
@@ -169,8 +170,7 @@ const Wallet = ({
         </div>
         <div className="modal-title">Send CSPR</div>
         <p style={{ textAlign: 'center' }}>
-          {' '}
-          min To send is 2.5 caasper and max are {wallet.balance - 0.00001}
+          {/* Minimum transfer amount is 2.5 CSPR and max are {wallet.balance - 0.00001} */}
         </p>
         {isPendingTransfer && (
           <>
@@ -189,7 +189,6 @@ const Wallet = ({
                   onChange={onChangeAmount}
                   value={amountToSend}
                 />
-                <p>+ fee 0.00001 CSPR</p>
               </div>
               <div>
                 <Input
@@ -235,6 +234,10 @@ const Wallet = ({
               <Option value="CSPR">CSPR</Option>
             </Select>
           </div> */}
+              <p>
+                Transaction fee: 0.00001 CSPR ($
+                {(casperPrice * 0.00001).toPrecision(3)})
+              </p>
               <div>
                 <Button
                   onClick={onSendConfirm}

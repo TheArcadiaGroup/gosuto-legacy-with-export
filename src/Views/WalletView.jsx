@@ -48,6 +48,7 @@ const WalletView = () => {
   const [wallets, setWallets] = useState();
   const [shouldUpdate, setShouldUpdate] = useState(false);
   const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
+  const [casperPrice, setCasperPrice] = useState(0);
   const db = Datastore.create({
     filename: `${remote.app.getPath('userData')}/wallets.db`,
     timestampData: true,
@@ -533,6 +534,7 @@ const WalletView = () => {
       console.log('getting wallets');
       const walletsDb = await db.find({});
       const csprPrice = (await getCasperMarketInformation())?.price;
+      setCasperPrice(csprPrice);
       const latestBlockHash = await getLatestBlockInfo();
       for (let index = 0; index < walletsDb.length; index++) {
         let balance;
@@ -631,6 +633,7 @@ const WalletView = () => {
               <Col span={8} key={i}>
                 <Wallet
                   key={`wallet_${i}`}
+                  casperPrice={casperPrice}
                   setData={setData}
                   data={data}
                   setWallets={setWallets}
