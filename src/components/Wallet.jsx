@@ -216,6 +216,12 @@ const Wallet = ({
                     evt.preventDefault()
                   }
                 />
+                {note && note > 18446744073709551615 && (
+                  <p style={{ color: 'red', fontSize: 13 }}>
+                    Transfer ID should be positive number smaller than
+                    18446744073709551615
+                  </p>
+                )}
               </div>
               {/* <div>
             <Select
@@ -235,10 +241,12 @@ const Wallet = ({
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
                   disabled={
-                    !(
+                    (!(
                       amountToSend < 2.5 ||
                       amountToSend > wallet.balance - 0.00001
-                    ) && !recipient
+                    ) &&
+                      !recipient) ||
+                    note > 18446744073709551615
                   }
                 >
                   {/* {path.join(__dirname,'../src/casperService.js')} */}
