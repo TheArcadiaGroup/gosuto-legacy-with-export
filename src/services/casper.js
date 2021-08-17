@@ -31,7 +31,6 @@ export const getAccountBalance = async (
   network
 ) => {
   try {
-    console.log('latestBlockHash = ', latestBlockHash);
     const casperService = new CasperServiceByJsonRPC(
       getEndpointByNetwork(network)
     );
@@ -62,10 +61,14 @@ export const getWalletBalancesSum = async (publicKeys, network) => {
     for (let index = 0; index < publicKeys.length; index++) {
       try {
         const element = publicKeys[index];
-        sum += await getAccountBalance(element, latestBlockHash.block.hash, network);
+        sum += await getAccountBalance(
+          element,
+          latestBlockHash.block.hash,
+          network
+        );
       } catch (error) {
         // alert('error')
-        console.log('ERROR')
+        console.log('ERROR');
       }
     }
     return sum;
@@ -249,7 +252,7 @@ export const getValidatorByDeploy = async (deployHash, network) => {
     const casperService = new CasperServiceByJsonRPC(
       getEndpointByNetwork(network)
     );
-    console.log('in deployHash =', deployHash)
+    console.log('in deployHash =', deployHash);
     const { session } = (await casperService.getDeployInfo(deployHash)).deploy;
 
     return session.ModuleBytes
@@ -261,9 +264,7 @@ export const getValidatorByDeploy = async (deployHash, network) => {
     console.log('error in get validator = ', error);
     return '';
   }
-
 };
-
 
 export const getAccountHistory = async (accountHash, page, limit, network) => {
   try {
@@ -430,7 +431,7 @@ export const undelegate = async (
     ),
     10
   );
-  console.log('privateKey = ', privateKey)
+  console.log('privateKey = ', privateKey);
   return axios.post(`http://localhost:${port}/undelegate`, {
     privateKey,
     validatorPublicKey,

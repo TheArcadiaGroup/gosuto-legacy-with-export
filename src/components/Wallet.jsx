@@ -12,12 +12,9 @@ import {
   Select,
   Tag,
   notification,
-  message,
-  Space,
   Spin,
 } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
-import { Keys } from 'casper-client-sdk';
 import { remote } from 'electron';
 import Datastore from 'nedb-promises';
 import axios from 'axios';
@@ -31,12 +28,8 @@ import './components.global.scss';
 import '../App.global.scss';
 
 import WalletContext from '../contexts/WalletContext';
-import { getAccountBalance, transfer } from '../services/casper';
+import { transfer } from '../services/casper';
 import NetworkContext from '../contexts/NetworkContext';
-
-const path = require('path');
-
-const { Option } = Select;
 
 const Wallet = ({
   tag,
@@ -51,6 +44,7 @@ const Wallet = ({
   setWallets,
   wallets,
   setData,
+  wallet,
   data,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
@@ -84,10 +78,6 @@ const Wallet = ({
       <Menu.Item
         key="-1"
         onClick={async () => {
-          const db = Datastore.create({
-            filename: `${remote.app.getPath('userData')}/wallets.db`,
-            timestampData: true,
-          });
           const wallet = await db.findOne({ _id: id });
           localStorage.setItem('defaultWallet', JSON.stringify(wallet));
           setSelectedWallet(wallet);
@@ -137,7 +127,7 @@ const Wallet = ({
   const removeWallet = async () => {
     const defaultWallet = localStorage.getItem('defaultWallet');
     if (defaultWallet) {
-      if (JSON.parse(defaultWallet)._id == id) {
+      if (JSON.parse(defaultWallet)._id === id) {
         localStorage.removeItem('defaultWallet');
       }
     }
@@ -178,6 +168,10 @@ const Wallet = ({
           <img src={vault} alt="vault" className="image-modal" />
         </div>
         <div className="modal-title">Send CSPR</div>
+        <p style={{ textAlign: 'center' }}>
+          {' '}
+          min To send is 2.5 caasper and max are {wallet.balance - 0.00001}
+        </p>
         {isPendingTransfer && (
           <>
             <Spin style={{ margin: 'auto', display: 'block' }} />
@@ -190,11 +184,12 @@ const Wallet = ({
                 <InputNumber
                   className="modal-input-amount"
                   min={2.5}
-                  max={10000000000}
+                  max={wallet.balance - 0.00001}
                   placeholder="Enter Amount"
                   onChange={onChangeAmount}
                   value={amountToSend}
                 />
+                <p>+ fee 0.00001 CSPR</p>
               </div>
               <div>
                 <Input
@@ -209,6 +204,8 @@ const Wallet = ({
                   type="number"
                   className="modal-input-note"
                   placeholder="Transfer ID (optional)"
+                  max={18446744073709551615}
+                  min={0}
                   onChange={onChangeNote}
                   value={note}
                   onKeyDown={(evt) =>
@@ -237,6 +234,12 @@ const Wallet = ({
                   onClick={onSendConfirm}
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
+                  disabled={
+                    !(
+                      amountToSend < 2.5 ||
+                      amountToSend > wallet.balance - 0.00001
+                    ) && !recipient
+                  }
                 >
                   {/* {path.join(__dirname,'../src/casperService.js')} */}
                   Next
@@ -275,7 +278,30 @@ const Wallet = ({
               </div>
               {!result.toUpperCase().startsWith('ERROR') && (
                 <>
-                  <span className="modal-description">Explorer link</span>
+                  <span className="modal-description">
+                    Explorer link{' '}
+                    <span style={{ fontSize: 11, color: '#9c9393' }}>
+                      (After inclusion in a new block, you can review the{' '}
+                      <span
+                        role="link"
+                        onClick={() => {
+                          const url =
+                            selectedNetwork === 'casper-test'
+                              ? `https://testnet.cspr.live/deploy/${result}`
+                              : `https://cspr.live/deploy/${result}`;
+                          window.open(url, '_blank');
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          color: 'blue',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Deploy Details
+                      </span>
+                      )
+                    </span>
+                  </span>
                   <TextArea
                     type="text"
                     className="modal-input-amount"
@@ -437,32 +463,26 @@ const Wallet = ({
     await navigator.clipboard.writeText(valueToCopy);
     openNotification();
   };
-  const viewMnemonicModalSystem = () => {
+  const ViewMnemonicModalSystem = () => {
     const [wallet, setWallet] = useState();
     const [newWalletName, setNewWalletName] = useState('');
-    console.log('wallet = ', wallet);
+
     useEffect(() => {
       async function getWalletInfo() {
-        const db = Datastore.create({
-          filename: `${remote.app.getPath('userData')}/wallets.db`,
-          timestampData: true,
-        });
-        const wallet = await db.findOne({ _id: id });
-        console.log('found wallet = ', wallet);
-        setWallet(wallet);
-        setNewWalletName(wallet.walletName);
+        const walletDb = await db.findOne({ _id: id });
+        setWallet(walletDb);
+        setNewWalletName(walletDb.walletName);
       }
       getWalletInfo();
     }, [id]);
     const onUpdate = async () => {
       try {
-        const db = Datastore.create({
-          filename: `${remote.app.getPath('userData')}/wallets.db`,
-          timestampData: true,
-        });
-        const wallet = await db.findOne({ _id: id });
-        wallet.walletName = newWalletName;
-        await db.update({ _id: id }, { ...wallet, walletName: newWalletName });
+        const walletDb = await db.findOne({ _id: id });
+        walletDb.walletName = newWalletName;
+        await db.update(
+          { _id: id },
+          { ...walletDb, walletName: newWalletName }
+        );
         setWalletDetailsModalVisible(false);
         notification.success({
           message: 'Success',
@@ -485,7 +505,7 @@ const Wallet = ({
             <img src={vault} alt="vault" className="image-modal" />
           </div>
           <div className="modal-title">{wallet.walletName}</div>
-          {selectedOption == 1 && (
+          {selectedOption === 1 && (
             <>
               <div style={{ marginBottom: '15px' }}>
                 <span className="modal-content">Wallet name:</span>
@@ -501,7 +521,7 @@ const Wallet = ({
               </div>
             </>
           )}
-          {selectedOption == 3 && (
+          {selectedOption === 3 && (
             <>
               <div style={{ marginBottom: '15px' }}>
                 <span className="modal-description">Public key</span>
@@ -584,7 +604,7 @@ const Wallet = ({
               </div>
             </>
           )}
-          {selectedOption == 0 && (
+          {selectedOption === 0 && (
             <>
               {wallet.hasMnemonic && (
                 <>
@@ -594,7 +614,10 @@ const Wallet = ({
                   </div>
                   <div className="mnemonic-description">
                     {mnemonicWords?.map((word, index) => (
-                      <div className="mnemonic-word" key={index}>
+                      <div
+                        className="mnemonic-word"
+                        key={`mnemonic-word-${index}`}
+                      >
                         <span className="mnemonic-number">{index + 1}.</span>{' '}
                         <Tag className="mnemonic-tag" color="processing">
                           {word}
@@ -624,7 +647,8 @@ const Wallet = ({
             bordered={false}
             className="wallet-card"
             style={
-              selectedWallet?._id == id
+              // eslint-disable-next-line no-underscore-dangle
+              selectedWallet?._id === id
                 ? { border: '3px solid #5F24FB', borderRadius: '20px' }
                 : { marginBottom: '20px' }
             }
@@ -633,12 +657,13 @@ const Wallet = ({
               <div className="wallet-card-tag">{tag}</div>
               <div className="dropdown-holder">
                 <Dropdown overlay={menu} trigger={['click']}>
-                  <a
+                  <div
+                    role="menubar"
                     className="ant-dropdown-link dropdown-menu"
-                    onClick={(e) => e.preventDefault()}
+                    // onClick={(e) => e.preventDefault()}
                   >
                     . . .
-                  </a>
+                  </div>
                 </Dropdown>
               </div>
             </div>
@@ -667,33 +692,43 @@ const Wallet = ({
       <GeneralModal
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
-        children={sendModalSystem()}
         customOnCancelLogic={customOnCancelLogic}
         footer={[
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center' }} key="0">
             <Button type="primary" className="send-button">
               Next
             </Button>
           </div>,
         ]}
-      />
+      >
+        {sendModalSystem()}
+      </GeneralModal>
       <GeneralModal
         visible={walletDetailsModalVisible}
         changeVisibility={setWalletDetailsModalVisible}
-        children={viewMnemonicModalSystem()}
         customOnCancelLogic={customOnCancelLogic}
         footer={[]}
-      />
+      >
+        {ViewMnemonicModalSystem()}
+      </GeneralModal>
     </div>
   );
 };
 
-Wallet.propTypes = {
+/* Wallet.propTypes = {
   tag: PropTypes.string,
   title: PropTypes.string,
   amount: PropTypes.string,
   secondaryTitle: PropTypes.string,
   secondaryAmount: PropTypes.string,
-};
+  id: PropTypes.any,
+  db: PropTypes.any,
+  setShouldUpdate: PropTypes.any,
+  shouldUpdate: PropTypes.any,
+  setWallets: PropTypes.any,
+  wallets: PropTypes.any,
+  setData: PropTypes.any,
+  data: PropTypes.any,
+}; */
 
 export default Wallet;

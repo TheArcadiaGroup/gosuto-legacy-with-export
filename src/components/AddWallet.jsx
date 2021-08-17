@@ -17,10 +17,8 @@ const AddWallet = ({
     setIsModalVisible(true);
   };
   const [backupIsModalVisible, setBackupIsModalVisible] = useState(false);
-  isModalVisible = isModalVisible ? isModalVisible : backupIsModalVisible;
-  setIsModalVisible = setIsModalVisible
-    ? setIsModalVisible
-    : setBackupIsModalVisible;
+  isModalVisible = isModalVisible || backupIsModalVisible;
+  setIsModalVisible = setIsModalVisible || setBackupIsModalVisible;
   return (
     <div className="site-card-wrapper">
       <Row>
@@ -41,9 +39,10 @@ const AddWallet = ({
         customOnCancelLogic={customOnCancelLogic}
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
-        children={children}
         footer={footer}
-      />
+      >
+        {children}
+      </GeneralModal>
     </div>
   );
 };

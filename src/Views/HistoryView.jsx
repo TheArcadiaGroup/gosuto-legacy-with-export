@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Tag, Spin, Empty } from 'antd';
+import Datastore from 'nedb-promises';
+import { remote } from 'electron';
 import HistoryCard from '../components/HistoryCard';
 // styles
 import '../App.global.scss';
@@ -10,8 +12,6 @@ import { getAccountHistory } from '../services/casper';
 import WalletContext from '../contexts/WalletContext';
 import DataContext from '../contexts/DataContext';
 import NetworkContext from '../contexts/NetworkContext';
-import { remote } from 'electron';
-import Datastore from 'nedb-promises';
 
 const HistoryView = () => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
@@ -165,7 +165,7 @@ const HistoryView = () => {
           />
         ))}
 
-      {cardsToDisplay.length  === 0 && !pageLoading && (
+      {cardsToDisplay.length === 0 && !pageLoading && (
         <>
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
         </>
