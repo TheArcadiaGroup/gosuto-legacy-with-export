@@ -5,18 +5,17 @@ import { Tag, Button, Input, Row, Col, notification, Spin } from 'antd';
 
 // styles
 import '../App.global.scss';
-import { CasperClient, Keys, PublicKey } from 'casper-client-sdk';
+import { Keys, PublicKey } from 'casper-client-sdk';
 import nacl from 'tweetnacl';
 import Datastore from 'nedb-promises';
-import { dialog, remote } from 'electron';
+import { remote } from 'electron';
 import TextArea from 'antd/lib/input/TextArea';
-import { createReadStream, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import EthereumHDKey from 'ethereumjs-wallet/dist/hdkey';
 import {
   getAccountBalance,
   getCasperMarketInformation,
   getLatestBlockInfo,
-  getUserDelegatedAmount,
 } from '../services/casper';
 import { parseAlgorithm } from '../utils/casper';
 import WalletContext from '../contexts/WalletContext';
@@ -31,16 +30,16 @@ const path = require('path');
 const bip39 = require('bip39');
 
 const WalletView = () => {
-  const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
-  const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
+  // const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
+  const [selectedNetwork] = useContext(NetworkContext);
   const [data, setData] = useContext(DataContext);
-
+  const [seedToImportFrom, setSeedToImportFrom] = useState('');
   const [clicked, setClicked] = useState(false);
   const [mnemonic, setMnemonic] = useState(bip39.generateMnemonic());
   const [accountHex, setAccountHex] = useState('');
   const [privateKey, setPrivateKey] = useState('');
   const [accountHash, setAccountHash] = useState('');
-  const [mnemonicSeed, setMnemonicSeed] = useState('');
+  // const [mnemonicSeed, setMnemonicSeed] = useState('');
   const [walletName, setWalletName] = useState('');
   const [fileContents, setFileContents] = useState('');
   const [publicKeyUint8, setPublicKeyUint8] = useState('');
@@ -49,6 +48,7 @@ const WalletView = () => {
   const [wallets, setWallets] = useState();
   const [shouldUpdate, setShouldUpdate] = useState(false);
   const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
+  const [casperPrice, setCasperPrice] = useState(0);
   const db = Datastore.create({
     filename: `${remote.app.getPath('userData')}/wallets.db`,
     timestampData: true,
@@ -167,10 +167,10 @@ const WalletView = () => {
   }
   const walletInformation = (customMnemonic) => {
     if (
-      privateKey == '' &&
-      accountHash == '' &&
-      accountHex == '' &&
-      mnemonic != '' &&
+      privateKey === '' &&
+      accountHash === '' &&
+      accountHex === '' &&
+      mnemonic !== '' &&
       clicked
     ) {
       generateWallet(customMnemonic)
@@ -254,13 +254,9 @@ const WalletView = () => {
   };
   const confirmWallet = async () => {
     try {
-      const db = Datastore.create({
-        filename: `${remote.app.getPath('userData')}/wallets.db`,
-        timestampData: true,
-      });
       let newWallet = await db.insert({
         walletName:
-          walletName == ''
+          walletName === ''
             ? bip39.generateMnemonic().split(' ').slice(0, 2).join(' ')
             : walletName,
         accountHash,
@@ -320,7 +316,7 @@ const WalletView = () => {
     try {
       const { algorithm, hexKey, secretKeyBase64 } =
         parseAlgorithm(fileContents);
-      let privateKeyUint8;
+      let privateKeyUint8 = '';
       let publicKeyUint8;
       let keyPair;
       privateKeyUint8 = parseAlgorithm(fileContents).secretKeyBase64;
@@ -340,7 +336,7 @@ const WalletView = () => {
       console.log('keyPair = ', keyPair);
       let newWallet = await db.insert({
         walletName:
-          walletName == ''
+          walletName === ''
             ? bip39.generateMnemonic().split(' ').slice(0, 2).join(' ')
             : walletName,
         accountHash: Buffer.from(keyPair.accountHash()).toString('hex'),
@@ -442,7 +438,7 @@ const WalletView = () => {
         >
           Upload Private Key File
         </Button>
-        {fileContents != '' && (
+        {fileContents !== '' && (
           <p
             style={{
               textAlign: 'center',
@@ -483,7 +479,6 @@ const WalletView = () => {
       </div>
     );
   };
-  const [seedToImportFrom, setSeedToImportFrom] = useState('');
 
   const onImportFromSeed = async () => {
     try {
@@ -491,7 +486,7 @@ const WalletView = () => {
         await generateWallet(seedToImportFrom);
       let newWallet = await db.insert({
         walletName:
-          walletName == ''
+          walletName === ''
             ? bip39.generateMnemonic().split(' ').slice(0, 2).join(' ')
             : walletName,
         accountHash: accHash,
@@ -533,60 +528,56 @@ const WalletView = () => {
       </Button>
     );
   };
-  async function getWallets(withGetBalances) {
-    console.log('getting wallets');
-    const wallets = await db.find({});
-    for (let index = 0; index < wallets.length; index++) {
-      let balance;
-      let amount = '';
-      let stakedAmount;
-      let stakedValue;
-      const csprPrice = (await getCasperMarketInformation())?.price;
-      const latestBlockHash = await getLatestBlockInfo();
-      const wallet = wallets[index];
-      try {
-        balance = withGetBalances
-          ? await getAccountBalance(
-              wallet.accountHex,
-              latestBlockHash.block.hash,
-              selectedNetwork
-            )
-          : 0;
-        amount = balance * csprPrice;
-        // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
-        // stakedAmount = stakedAmount.stakedAmount
-        //  stakedValue = csprPrice*stakedAmount
-      } catch (error) {
-        console.log('error = ', error);
-        balance = 'Inactive account.';
-      }
-      wallets[index] = { ...wallet, balance, amount };
-    }
-    setWallets(wallets);
-    setData({
-      ...data,
-      wallets,
-      walletsLastUpdate: new Date(),
-      shouldUpdateWallets: false,
-    });
-    setPageLoading(false);
-  }
+
   useEffect(() => {
+    async function getWallets(withGetBalances) {
+      console.log('getting wallets');
+      const walletsDb = await db.find({});
+      const csprPrice = (await getCasperMarketInformation())?.price;
+      setCasperPrice(csprPrice);
+      const latestBlockHash = await getLatestBlockInfo();
+      for (let index = 0; index < walletsDb.length; index++) {
+        let balance;
+        let amount = '';
+        const wallet = walletsDb[index];
+        try {
+          balance = withGetBalances
+            ? await getAccountBalance(
+                wallet.accountHex,
+                latestBlockHash.block.hash,
+                selectedNetwork
+              )
+            : 0;
+          amount = balance * csprPrice;
+          // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
+          // stakedAmount = stakedAmount.stakedAmount
+          //  stakedValue = csprPrice*stakedAmount
+        } catch (error) {
+          console.log('error = ', error);
+          balance = 'Inactive account.';
+        }
+        walletsDb[index] = { ...wallet, balance, amount };
+      }
+      setWallets(walletsDb);
+      setData({
+        ...data,
+        wallets,
+        walletsLastUpdate: new Date(),
+        shouldUpdateWallets: false,
+      });
+      setPageLoading(false);
+    }
     if (
-      data.wallets == 0 ||
+      data.wallets === 0 ||
       (new Date() - data.walletsLastUpdate) / 1000 > 180 ||
       data.shouldUpdateWallets
     ) {
-      console.log('fetching new dta');
-      console.log('duration = ', (new Date() - data.walletsLastUpdate) / 1000);
       getWallets(true);
     } else {
-      console.log(' duration = ', (new Date() - data.walletsLastUpdate) / 1000);
-      console.log('not fetching new data');
       setWallets(data.wallets);
       setPageLoading(false);
     }
-  }, [shouldUpdate, selectedNetwork, data]);
+  }, [shouldUpdate, selectedNetwork, data, db, setData, wallets]);
   const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
     useState(false);
@@ -603,9 +594,10 @@ const WalletView = () => {
               setIsModalVisible={setIsNewWalletModalVisible}
               title="New Wallet"
               customOnCancelLogic={customOnCancelLogic}
-              children={!clicked ? mnemonicModalSystem() : walletInformation()}
               footer={[footerContent()]}
-            />
+            >
+              {!clicked ? mnemonicModalSystem() : walletInformation()}
+            </AddWallet>
           </Col>
           <Col span={7}>
             <AddWallet
@@ -640,7 +632,8 @@ const WalletView = () => {
             wallets?.map((wallet, i) => (
               <Col span={8} key={i}>
                 <Wallet
-                  key={i}
+                  key={`wallet_${i}`}
+                  casperPrice={casperPrice}
                   setData={setData}
                   data={data}
                   setWallets={setWallets}
@@ -650,6 +643,7 @@ const WalletView = () => {
                   db={db}
                   id={wallet._id}
                   tag={wallet.walletName}
+                  wallet={wallet}
                   title={
                     wallet?.balance.toLocaleString().startsWith('Inactive')
                       ? wallet.balance

@@ -25,6 +25,7 @@ module.exports = (api) => {
       require('@babel/preset-typescript'),
       [require('@babel/preset-react'), { development }],
     ],
+    parserOpts: { allowReturnOutsideFunction: true },
     plugins: [
       // Stage 0
       require('@babel/plugin-proposal-function-bind'),
@@ -32,14 +33,14 @@ module.exports = (api) => {
       // Stage 1
       require('@babel/plugin-proposal-export-default-from'),
       require('@babel/plugin-proposal-logical-assignment-operators'),
-      [require('@babel/plugin-proposal-optional-chaining'), { loose: false }],
+      [require('@babel/plugin-proposal-optional-chaining'), { loose: true }],
       [
         require('@babel/plugin-proposal-pipeline-operator'),
         { proposal: 'minimal' },
       ],
       [
         require('@babel/plugin-proposal-nullish-coalescing-operator'),
-        { loose: false },
+        { loose: true },
       ],
       require('@babel/plugin-proposal-do-expressions'),
 

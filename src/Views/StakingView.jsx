@@ -8,10 +8,12 @@ import {
   notification,
   Spin,
 } from 'antd';
+import TextArea from 'antd/lib/input/TextArea';
+import { remote } from 'electron';
+import Datastore from 'nedb-promises';
 import StakingCard from '../components/StakingCard';
 import StakingTable from '../components/StakingTable';
 import AddWallet from '../components/AddWallet';
-import TextArea from 'antd/lib/input/TextArea';
 
 // images
 import vault from '../../assets/icons/vault-logo.png';
@@ -27,8 +29,6 @@ import {
   getValidatorRewards,
   getValidatorWeight,
 } from '../services/casper';
-import Datastore from 'nedb-promises';
-import { remote } from 'electron';
 import WalletContext from '../contexts/WalletContext';
 import NetworkContext from '../contexts/NetworkContext';
 import DataContext from '../contexts/DataContext';
@@ -43,7 +43,8 @@ const StakingView = () => {
   const [casperPrice, setCasperPrice] = useState(0);
   const [accountBalance, setAccountBalance] = useState(0);
   const [wallets, setWallets] = useState();
-  const [selectedDelegationWallet, setSelectedDelegationWallet] = useState();
+  const [selectedDelegationWallet, setSelectedDelegationWallet] =
+    useState(null);
   const [delegationRewards, setDelegationRewards] = useState(0);
   const [validatorWeight, setValidatorWeight] = useState(0);
   const [validatorRewards, setValidatorRewards] = useState(0);
@@ -189,6 +190,7 @@ const StakingView = () => {
                   onChange={onChangeAmount}
                   value={amountToDelegate}
                 />
+                <p>+ fee 2.8547 CSPR</p>
               </div>
               <div>
                 <Select
@@ -212,6 +214,7 @@ const StakingView = () => {
                   onClick={onEarnConfirm}
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
+                  disabled={!selectedDelegationWallet}
                 >
                   {/* {path.join(__dirname,'../src/casperService.js')} */}
                   Delegate
@@ -462,7 +465,7 @@ const StakingView = () => {
         <Col span={12}>
           <AddWallet
             customOnCancelLogic={customOnCancelLogic}
-            title={'Earn with Arcadia'}
+            title="Earn with Arcadia"
             children={earnModalSystem()}
             footer={[
               <div style={{ display: 'flex', justifyContent: 'center' }}>
