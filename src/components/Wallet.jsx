@@ -189,6 +189,25 @@ const Wallet = ({
                   onChange={onChangeAmount}
                   value={amountToSend}
                 />
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'end',
+                  }}
+                >
+                  <Button
+                    style={{
+                      marginTop: '-10px',
+                      textAlign: 'right',
+                      fontSize: '10px',
+                    }}
+                    className="send-button-no-mt"
+                    onClick={() => setAmountToSend(wallet.balance - 0.00001)}
+                  >
+                    MAX
+                  </Button>
+                </div>
               </div>
               <div>
                 <Input
