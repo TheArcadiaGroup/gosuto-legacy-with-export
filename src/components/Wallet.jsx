@@ -56,7 +56,7 @@ const Wallet = ({
     useState(false);
   const [result, setResult] = useState('Nothing yet');
   const [selectedOption, setSelectedOption] = useState(-1);
-  const [amountToSend, setAmountToSend] = useState('2.5');
+  const [amountToSend, setAmountToSend] = useState(2.5);
   const [recipient, setRecipient] = useState('');
   const [note, setNote] = useState('');
   const [network, setNetwork] = useState('');
@@ -703,6 +703,7 @@ const Wallet = ({
                 type="primary"
                 className="send-button"
                 onClick={showModal}
+                disabled={wallet.balance < 2.5 - 0.00001}
               >
                 Send
               </Button>
