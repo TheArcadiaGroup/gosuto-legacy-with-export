@@ -49,9 +49,7 @@ const StakingView = () => {
   const [validatorWeight, setValidatorWeight] = useState(0);
   const [validatorRewards, setValidatorRewards] = useState(0);
   const [delegationOperations, setDelegationOperations] = useState([]);
-  const [amountToDelegate, setAmountToDelegate] = useState(
-    parseFloat(2.50001 + 0.000000001)
-  );
+  const [amountToDelegate, setAmountToDelegate] = useState(parseFloat(1));
   const [stakeSuccessful, setStakeSuccessful] = useState(false);
   const [isStakePending, setIsStakePending] = useState(false);
   const [data, setData] = useContext(DataContext);
@@ -173,6 +171,13 @@ const StakingView = () => {
     }
   }, [selectedNetwork]);
 
+  const customOnCancelLogic = () => {
+    setStakeSuccessful(false);
+    setAmountToDelegate(1);
+    setSelectedDelegationWallet('Source');
+    setResult('');
+    setIsStakePending(false);
+  };
   const earnModalSystem = () => {
     return (
       <div>
@@ -186,8 +191,8 @@ const StakingView = () => {
               <div>
                 <InputNumber
                   className="modal-input-amount"
-                  min={2.50001 + 0.000000001}
-                  max={parseFloat(accountBalance - 2.5 - 2.50001)}
+                  min={0.000000001}
+                  max={parseFloat(accountBalance - 2.5 - 3)}
                   placeholder="Enter Amount"
                   onChange={onChangeAmount}
                   value={amountToDelegate}
@@ -208,7 +213,7 @@ const StakingView = () => {
                     }}
                     className="send-button-no-mt"
                     onClick={() => {
-                      setAmountToDelegate(parseFloat(accountBalance - 5.00001));
+                      setAmountToDelegate(parseFloat(accountBalance - 2.5 - 3));
                     }}
                   >
                     MAX
@@ -234,17 +239,17 @@ const StakingView = () => {
               </div>
               <div>
                 <p>
-                  Transaction fee: 2.50001 CSPR ($
-                  {(casperPrice * 2.50001).toPrecision(3)})
+                  Transaction fee: 3 CSPR ($
+                  {(casperPrice * 3).toPrecision(3)})
                 </p>
                 <Button
                   onClick={onEarnConfirm}
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
                   disabled={
-                    !selectedDelegationWallet &&
+                    !selectedDelegationWallet ||
                     !(
-                      amountToDelegate < 2.50001 + 0.000000001 ||
+                      amountToDelegate < 3 + 0.000000001 ||
                       amountToDelegate > accountBalance - 5.00001
                     )
                   }
@@ -413,11 +418,6 @@ const StakingView = () => {
     }
   };
 
-  const customOnCancelLogic = () => {
-    setStakeSuccessful(false);
-    setResult('');
-    setIsStakePending(false);
-  };
   return (
     <>
       {(pageLoading || data.shouldUpdateStaking) && (
