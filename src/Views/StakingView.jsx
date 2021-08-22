@@ -248,10 +248,8 @@ const StakingView = () => {
                   style={{ margin: 'auto', display: 'block' }}
                   disabled={
                     !selectedDelegationWallet ||
-                    !(
-                      amountToDelegate < 3 + 0.000000001 ||
-                      amountToDelegate > accountBalance - 5.00001
-                    )
+                    amountToDelegate < 3 + 0.000000001 ||
+                    amountToDelegate > accountBalance - 5.00001
                   }
                 >
                   {/* {path.join(__dirname,'../src/casperService.js')} */}
