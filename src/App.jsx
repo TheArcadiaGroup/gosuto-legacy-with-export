@@ -114,20 +114,34 @@ function App() {
 
   useEffect(() => {
     ipcRenderer.on('deep-link', (event, args) => {
-      // console.log('IN DEEPLINK');
-      // console.log('event = ', event);
-      console.log('args = ', decodeURIComponent(args));
-      const data = decodeURIComponent(args);
-      const deploy = data
-        .substr(0, data.indexOf('?callback'))
-        .replace('gosuto://', '');
-      console.log('deploy = ', deploy);
-      const callbackURL = data
-        .substr(data.indexOf('?callback') + 10, data.length)
-        .trim();
-      console.log('callbackURL = ', callbackURL);
-      setSignatureRequestData({ deploy, callbackURL });
+      // URIComponent = "gosuto//jsonString\"
+      const URIComponent = decodeURIComponent(args);
+      //extracting jsonString from URIComponent
+      const jsonString = URIComponent.slice(
+        URIComponent.indexOf('gosuto://'),
+        URIComponent.lastIndexOf('\\')
+      );
+      const test = jsonString.replace('gosuto://', '');
+      //parse jsonString jsonData={deploy,callbackURL}
+      let jsonData;
+      try {
+        jsonData = JSON.parse(test);
+        setSignatureRequestData(jsonData);
+      } catch (error) {
+        console.log(error);
+      }
+
       setIsModalVisible(true);
+      //old Code
+      // const data = decodeURIComponent(args);
+      // const deploy = data
+      //   .substr(0, data.indexOf('?callback'))
+      //   .replace('gosuto://', '');
+      // console.log('deploy = ', deploy);
+      // const callbackURL = data
+      //   .substr(data.indexOf('?callback') + 10, data.length)
+      //   .trim();
+      // console.log('callbackURL = ', callbackURL);
     });
     return () => {
       ipcRenderer.removeAllListeners('deep-link');
@@ -307,23 +321,31 @@ function App() {
                 </Sider>
                 <Content className="site-layout-background">
                   <GeneralModal
+                    bodyStyle={{
+                      background: '#f2f3f5',
+                      overflow: 'scroll',
+                      maxHeight: '95vh',
+                    }}
+                    style={{ top: 10 }}
+                    width={350}
                     visible={isModalVisible}
                     changeVisibility={setIsModalVisible}
                     // children={signDeploySystem()}
                     // customOnCancelLogic={customOnCancelLogic}
-                    footer={[
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center' }}
-                      >
-                        <Button type="primary" className="send-button">
-                          Next
-                        </Button>
-                      </div>,
-                    ]}
+                    // footer={[
+                    //   <div
+                    //     style={{ display: 'flex', justifyContent: 'center' }}
+                    //   >
+                    //     <Button type="primary" className="send-button">
+                    //       Next
+                    //     </Button>
+                    //   </div>,
+                    // ]}
                   >
                     <SignDeployModal
                       deploy={signatureRequestData.deploy}
                       callbackURL={signatureRequestData.callbackURL}
+                      setIsModalVisible={setIsModalVisible}
                     />
                   </GeneralModal>
                   ;

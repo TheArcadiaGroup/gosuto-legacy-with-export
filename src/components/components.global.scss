@@ -134,14 +134,12 @@
     font-size: 15px;
     font-weight: bold;
     overflow-wrap: anywhere;
-
 }
 .history-card-amount{
     color: #07D58D;
     font-size: 25px;
     font-weight: bold;
     overflow-wrap: anywhere;
-
 }
 .history-card-amount-lose{
     color: #FF6767;
@@ -312,4 +310,28 @@
 }
 .filter-name{
     margin-top: 10px;
+}
+
+//SignDeployModal css
+.modal-row{
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.modal-bg{
+    background-color: #f2f3f5;
+}
+.divider-style{
+    color: #e2e3e5 !important;
+    margin: 0.7rem 0 !important;
+}
+.title{
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bolder;
+    margin: 25px auto;
+}
+.font-12{
+    font-size: 12px;
 }
