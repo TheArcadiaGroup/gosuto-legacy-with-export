@@ -133,6 +133,7 @@ const HistoryView = () => {
           className={filter === selectedTag ? 'selected-tag' : 'unselected-tag'}
           color="processing"
           onClick={() => handleTagClick(filter)}
+          style={{ cursor: 'pointer' }}
         >
           <div className="filter-name">{filter}</div>
         </Tag>

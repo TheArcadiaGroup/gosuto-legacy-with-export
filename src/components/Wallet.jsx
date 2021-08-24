@@ -691,6 +691,7 @@ const Wallet = ({
                     role="menubar"
                     className="ant-dropdown-link dropdown-menu"
                     // onClick={(e) => e.preventDefault()}
+                    style={{ cursor: 'pointer' }}
                   >
                     . . .
                   </div>

@@ -190,6 +190,7 @@ const StakingView = () => {
             <div>
               <div>
                 <InputNumber
+                  type="number"
                   className="modal-input-amount"
                   min={0.000000001}
                   max={parseFloat(accountBalance - 2.5 - 3)}
