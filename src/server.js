@@ -169,7 +169,7 @@ server.post('/undelegate', async function (req, res) {
       keyPair.publicKey,
       network
     );
-    const payment = DeployUtil.standardPayment(500000000);
+    const payment = DeployUtil.standardPayment(10000);
     const args = RuntimeArgs.fromMap({
       delegator: CLValue.publicKey(keyPair.publicKey),
       validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),

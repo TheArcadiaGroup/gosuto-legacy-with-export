@@ -18,6 +18,7 @@ const StakingTable = ({
   delegationOperations,
   contextData,
   setContextData,
+  casperPrice,
 }) => {
   const [selectedWallet, setContextSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
@@ -214,6 +215,10 @@ const StakingTable = ({
                 </Button>
               </div>
             </div>
+            <p style={{ marginTop: '1rem' }}>
+              Transaction fee: 0.00001 CSPR ($
+              {(casperPrice * 0.00001).toPrecision(3)})
+            </p>
           </>
         )}
         {undelegationComplete && (
@@ -300,7 +305,12 @@ const StakingTable = ({
 
   return (
     <div>
-      <Table columns={columns} dataSource={data} pagination={false} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        scroll={{ x: 1000 }}
+      />
       <GeneralModal
         visible={isModalVisible}
         changeVisibility={setIsModalVisible}
