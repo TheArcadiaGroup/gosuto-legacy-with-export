@@ -515,6 +515,7 @@ const StakingView = () => {
         delegationOperations={delegationOperations}
         contextData={data}
         setContextData={setData}
+        casperPrice={casperPrice}
       />
     </>
   );
