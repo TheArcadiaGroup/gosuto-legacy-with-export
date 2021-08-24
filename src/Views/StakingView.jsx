@@ -49,7 +49,7 @@ const StakingView = () => {
   const [validatorWeight, setValidatorWeight] = useState(0);
   const [validatorRewards, setValidatorRewards] = useState(0);
   const [delegationOperations, setDelegationOperations] = useState([]);
-  const [amountToDelegate, setAmountToDelegate] = useState(1);
+  const [amountToDelegate, setAmountToDelegate] = useState(parseFloat(1));
   const [stakeSuccessful, setStakeSuccessful] = useState(false);
   const [isStakePending, setIsStakePending] = useState(false);
   const [data, setData] = useContext(DataContext);
@@ -171,6 +171,13 @@ const StakingView = () => {
     }
   }, [selectedNetwork]);
 
+  const customOnCancelLogic = () => {
+    setStakeSuccessful(false);
+    setAmountToDelegate(1);
+    setSelectedDelegationWallet('Source');
+    setResult('');
+    setIsStakePending(false);
+  };
   const earnModalSystem = () => {
     return (
       <div>
@@ -184,13 +191,34 @@ const StakingView = () => {
               <div>
                 <InputNumber
                   className="modal-input-amount"
-                  min={1}
-                  max={10000000000}
+                  min={0.000000001}
+                  max={parseFloat(accountBalance - 2.5 - 3)}
                   placeholder="Enter Amount"
                   onChange={onChangeAmount}
                   value={amountToDelegate}
                 />
-                <p>+ fee 2.8547 CSPR</p>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'end',
+                  }}
+                >
+                  <Button
+                    style={{
+                      marginTop: '-10px',
+                      textAlign: 'right',
+                      fontSize: '10px',
+                    }}
+                    className="send-button-no-mt"
+                    onClick={() => {
+                      setAmountToDelegate(parseFloat(accountBalance - 2.5 - 3));
+                    }}
+                  >
+                    MAX
+                  </Button>
+                </div>
               </div>
               <div>
                 <Select
@@ -210,11 +238,19 @@ const StakingView = () => {
                 </Select>
               </div>
               <div>
+                <p>
+                  Transaction fee: 3 CSPR ($
+                  {(casperPrice * 3).toPrecision(3)})
+                </p>
                 <Button
                   onClick={onEarnConfirm}
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
-                  disabled={!selectedDelegationWallet}
+                  disabled={
+                    !selectedDelegationWallet ||
+                    amountToDelegate < 3 + 0.000000001 ||
+                    amountToDelegate > accountBalance - 5.00001
+                  }
                 >
                   {/* {path.join(__dirname,'../src/casperService.js')} */}
                   Delegate
@@ -380,11 +416,6 @@ const StakingView = () => {
     }
   };
 
-  const customOnCancelLogic = () => {
-    setStakeSuccessful(false);
-    setResult('');
-    setIsStakePending(false);
-  };
   return (
     <>
       {(pageLoading || data.shouldUpdateStaking) && (
@@ -456,7 +487,7 @@ const StakingView = () => {
         <Col span={12}>
           <StakingCard
             tag="Undelegated"
-            amount={`${accountBalance?.toLocaleString()} CSPR`}
+            amount={`${accountBalance} CSPR`}
             amountDollars={`${(
               accountBalance * casperPrice
             )?.toLocaleString()} USD`}
@@ -468,7 +499,10 @@ const StakingView = () => {
             title="Earn with Arcadia"
             children={earnModalSystem()}
             footer={[
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'center' }}
+                key={0}
+              >
                 <Button type="primary" className="send-button">
                   Delegate
                 </Button>
