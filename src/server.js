@@ -116,26 +116,26 @@ server.post('/delegate', async function (req, res) {
       validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
       amount: CLValue.u512(amountToDelegate),
     });
-    // let contractHash =
-    //   'ccb576d6ce6dec84a551e48f0d0b7af89ddba44c7390b690036257a04a3ae9ea';
-    // if (network === 'casper-test') {
-    //   contractHash =
-    //     '93d923e336b20a4c4ca14d592b60e5bd3fe330775618290104f9beb326db7ae2';
-    // }
-    // const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
-    //   Uint8Array.from(Buffer.from(contractHash, 'hex')),
-    //   'delegate',
-    //   args
-    // );
-    const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
-      contract,
-      RuntimeArgs.fromMap({
-        action: CLValue.string('delegate'),
-        delegator: CLValue.publicKey(keyPair.publicKey),
-        validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
-        amount: CLValue.u512(amountToDelegate),
-      })
+    let contractHash =
+      'ccb576d6ce6dec84a551e48f0d0b7af89ddba44c7390b690036257a04a3ae9ea';
+    if (network === 'casper-test') {
+      contractHash =
+        '93d923e336b20a4c4ca14d592b60e5bd3fe330775618290104f9beb326db7ae2';
+    }
+    const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
+      Uint8Array.from(Buffer.from(contractHash, 'hex')),
+      'delegate',
+      args
     );
+    // const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
+    //   contract,
+    //   RuntimeArgs.fromMap({
+    //     action: CLValue.string('delegate'),
+    //     delegator: CLValue.publicKey(keyPair.publicKey),
+    //     validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+    //     amount: CLValue.u512(amountToDelegate),
+    //   })
+    // );
     const deploy = DeployUtil.makeDeploy(deployParams, session, payment);
     const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
     const executionResult = await client.putDeploy(signedDeploy);
