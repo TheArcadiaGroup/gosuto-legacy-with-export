@@ -114,19 +114,27 @@ function App() {
 
   useEffect(() => {
     ipcRenderer.on('deep-link', (event, args) => {
-      // URIComponent = "gosuto//jsonString\"
       const URIComponent = decodeURIComponent(args);
-      //extracting jsonString from URIComponent
+      //URIComponet=".....gosuto://jsonString\?callbackURL=callbackURL"
+      //extracting the stringified json object from URIComponent
       const jsonString = URIComponent.slice(
         URIComponent.indexOf('gosuto://'),
-        URIComponent.lastIndexOf('\\')
-      );
-      const test = jsonString.replace('gosuto://', '');
-      //parse jsonString jsonData={deploy,callbackURL}
+        URIComponent.indexOf('?callbackURL=')
+      )
+        .replace('gosuto://', '')
+        .trim()
+        .slice(0, URIComponent.lastIndexOf('\\'));
+
+      const callbackURL = URIComponent.slice(
+        URIComponent.indexOf('?callbackURL=')
+      )
+        .replace('?callbackURL=', '')
+        .trim();
+
       let jsonData;
       try {
-        jsonData = JSON.parse(test);
-        setSignatureRequestData(jsonData);
+        jsonData = JSON.parse(jsonString);
+        setSignatureRequestData({ deploy: jsonData.deploy, callbackURL });
       } catch (error) {
         console.log(error);
       }

@@ -8,7 +8,6 @@ import axios from 'axios';
 import tinydate from 'tinydate';
 
 const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
-  
   console.log('callbackURL from sign = ', callbackURL);
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const port = parseInt(
@@ -44,11 +43,11 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
       <div className="modal-row">
         <div>
           <b className="font-12" style={{ fontWeight: 'bolder' }}>
-            {title}
+            {title ? title : 'error'}
           </b>
         </div>
         <div className="font-12" style={{ color: '#292a2c' }}>
-          {data}
+          {data ? data : 'error'}
         </div>
       </div>
     );
@@ -64,26 +63,26 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
 
       <RenderRow
         title="Signing Key"
-        data={formatLongStrings(testData?.header?.account)}
+        data={formatLongStrings(deploy?.header?.account)}
       />
       <Divider className="divider-style" />
       <RenderRow
         title="Account"
-        data={formatLongStrings(testData?.header?.account)}
+        data={formatLongStrings(deploy?.header?.account)}
       />
       <Divider className="divider-style" />
-      <RenderRow title="Deploy Hash" data={formatLongStrings(testData?.hash)} />
+      <RenderRow title="Deploy Hash" data={formatLongStrings(deploy?.hash)} />
       <Divider className="divider-style" />
       <RenderRow
         title="Timestamp"
-        data={formatDate(testData?.header?.timestamp)}
+        data={formatDate(deploy?.header?.timestamp)}
       />
       <Divider className="divider-style" />
-      <RenderRow title="Chain Name" data={testData?.header?.chain_name} />
+      <RenderRow title="Chain Name" data={deploy?.header?.chain_name} />
       <Divider className="divider-style" />
       <RenderRow
         title="Transaction Fee"
-        data={testData?.header?.gas_price + ' motes'}
+        data={deploy?.header?.gas_price + ' motes'}
       />
       <Divider className="divider-style" />
       <RenderRow title="Deploy Type" data="Transfer" />
