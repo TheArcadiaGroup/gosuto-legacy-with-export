@@ -18,7 +18,7 @@ const HistoryView = () => {
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
   const [data, setData] = useContext(DataContext);
   const [pageLoading, setPageLoading] = useState(true);
-  const filters = ['All', 'Sent', 'Received', 'Staking'];
+  const filters = ['All', 'Sent', 'Received', 'Staking', 'Failed', 'Pending'];
   const [selectedTag, setSelectedTag] = useState('All');
   const [cardsToDisplay, setCardsToDisplay] = useState([]);
   const [history, setHistory] = useState();
@@ -46,7 +46,7 @@ const HistoryView = () => {
           timestampData: true,
         });
         if (data.pendingHistory.length === 0) {
-          console.log('lenght == 0');
+          console.log('lenght === 0');
           pendingHistory = await pendingHistoryDB.find({});
           console.log('pending history after database = ', pendingHistory);
         }
@@ -61,22 +61,27 @@ const HistoryView = () => {
               deployHash: pendingOperation?.deployHash,
             });
           }
-          console.log(
-            'pendingOperation.network === selectedNetwork = ',
-            JSON.stringify(fetchedHistory)?.indexOf(
-              pendingOperation?.deployHash
-            ) < 0 &&
-              pendingOperation.network == selectedNetwork &&
-              pendingOperation.wallet == selectedWallet.accountHex
-          );
           if (
             JSON.stringify(fetchedHistory)?.indexOf(
               pendingOperation?.deployHash
             ) < 0 &&
-            pendingOperation.network == selectedNetwork &&
-            pendingOperation.wallet == selectedWallet.accountHex
+            pendingOperation.network === selectedNetwork &&
+            pendingOperation.wallet === selectedWallet.accountHex
           ) {
-            newPending.push(pendingOperation);
+            const today = new Date();
+            const diffMs = today - new Date(pendingOperation.createdAt); // milliseconds between now & creation of history
+            const diffMins = Math.floor(diffMs / 1000 / 60); // minutes
+            if (diffMins > 10 && pendingOperation.method !== 'Failed') {
+              console.log('=======================');
+              await pendingHistoryDB.update(
+                { _id: pendingOperation._id },
+                { ...pendingOperation, method: 'Failed' }
+              );
+              pendingOperation.method = 'Failed';
+              newPending.push(pendingOperation);
+            } else {
+              newPending.push(pendingOperation);
+            }
           }
         });
         newPending = newPending.reverse();
@@ -97,7 +102,7 @@ const HistoryView = () => {
     }
 
     if (
-      data.history == 0 ||
+      data.history === 0 ||
       (new Date() - data.historyLastUpdate) / 1000 > 1 ||
       data.shouldUpdateHistory
     ) {
@@ -145,7 +150,6 @@ const HistoryView = () => {
           />
         </>
       )}
-      {console.log('cardsToDisplay = ', cardsToDisplay)}
       {cardsToDisplay.length > 0 &&
         cardsToDisplay.map((card, index) => (
           <HistoryCard
@@ -160,8 +164,8 @@ const HistoryView = () => {
             to={card.toAccount}
             method={card.method}
             lost={
-              card.fromAccount == selectedWallet?.accountHash ||
-              card.fromAccount == selectedWallet?.accountHex
+              card.fromAccount === selectedWallet?.accountHash ||
+              card.fromAccount === selectedWallet?.accountHex
             }
           />
         ))}

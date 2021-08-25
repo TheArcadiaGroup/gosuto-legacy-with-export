@@ -12,6 +12,7 @@ import { remote } from 'electron';
 import TextArea from 'antd/lib/input/TextArea';
 import { readFileSync } from 'fs';
 import EthereumHDKey from 'ethereumjs-wallet/dist/hdkey';
+import { promisify } from 'util';
 import {
   getAccountBalance,
   getCasperMarketInformation,
@@ -49,6 +50,8 @@ const WalletView = () => {
   const [shouldUpdate, setShouldUpdate] = useState(false);
   const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
   const [casperPrice, setCasperPrice] = useState(0);
+  const [defaultWallet, setDefaultWallet] = useState(null);
+
   const db = Datastore.create({
     filename: `${remote.app.getPath('userData')}/wallets.db`,
     timestampData: true,
@@ -276,7 +279,7 @@ const WalletView = () => {
         ...data,
         wallets: newWallets,
         walletsLastUpdate: new Date(),
-        shouldUpdateWallets: false,
+        shouldUpdateWallets: true,
       });
       // await getWallets(true);
     } catch (error) {
@@ -528,37 +531,81 @@ const WalletView = () => {
       </Button>
     );
   };
-
   useEffect(() => {
-    async function getWallets(withGetBalances) {
-      console.log('getting wallets');
-      const walletsDb = await db.find({});
-      const csprPrice = (await getCasperMarketInformation())?.price;
-      setCasperPrice(csprPrice);
-      const latestBlockHash = await getLatestBlockInfo();
-      for (let index = 0; index < walletsDb.length; index++) {
-        let balance;
-        let amount = '';
-        const wallet = walletsDb[index];
+    async function getDefaultWallet(withGetBalances) {
+      console.log('getting Default wallet');
+      if (localStorage.getItem('defaultWallet')) {
+        const dw = JSON.parse(localStorage.getItem('defaultWallet'));
+        const csprPrice = (await getCasperMarketInformation())?.price;
+        setCasperPrice(csprPrice);
+        const latestBlockHash = await getLatestBlockInfo();
+
+        let balance = 0.1;
+        let amount = 0.1;
         try {
           balance = withGetBalances
             ? await getAccountBalance(
-                wallet.accountHex,
+                dw.accountHex,
                 latestBlockHash.block.hash,
                 selectedNetwork
               )
             : 0;
           amount = balance * csprPrice;
-          // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
-          // stakedAmount = stakedAmount.stakedAmount
-          //  stakedValue = csprPrice*stakedAmount
         } catch (error) {
           console.log('error = ', error);
           balance = 'Inactive account.';
         }
-        walletsDb[index] = { ...wallet, balance, amount };
+        // setDefaultWallet(dw);
+        setDefaultWallet({ ...dw, balance, amount });
       }
-      setWallets(walletsDb);
+    }
+    getDefaultWallet(true);
+  }, [selectedNetwork]);
+
+  useEffect(() => {
+    async function getWallets(withGetBalances) {
+      setPageLoading(true);
+      console.log('getting wallets');
+      const walletsDb = await db.find({});
+      let filtredWallets = [];
+      if (localStorage.getItem('defaultWallet')) {
+        const dw = JSON.parse(localStorage.getItem('defaultWallet'));
+        filtredWallets = walletsDb.filter((wallet) => {
+          return wallet._id != dw._id;
+        });
+      } else {
+        filtredWallets = walletsDb;
+      }
+
+      const csprPrice = 1; // (await getCasperMarketInformation())?.price;
+      setCasperPrice(csprPrice);
+      const latestBlockHash = await getLatestBlockInfo();
+      await Promise.all(
+        filtredWallets &&
+          filtredWallets.length > 0 &&
+          filtredWallets.map(async (wallet, index) => {
+            let balance;
+            let amount = '';
+            try {
+              balance = withGetBalances
+                ? await getAccountBalance(
+                    wallet.accountHex,
+                    latestBlockHash.block.hash,
+                    selectedNetwork
+                  )
+                : 0;
+              amount = balance * csprPrice;
+              // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
+              // stakedAmount = stakedAmount.stakedAmount
+              //  stakedValue = csprPrice*stakedAmount
+            } catch (error) {
+              console.log('error = ', error);
+              balance = 'Inactive account.';
+            }
+            filtredWallets[index] = { ...wallet, balance, amount };
+          })
+      );
+      setWallets(filtredWallets);
       setData({
         ...data,
         wallets,
@@ -574,10 +621,19 @@ const WalletView = () => {
     ) {
       getWallets(true);
     } else {
+      setPageLoading(true);
       setWallets(data.wallets);
       setPageLoading(false);
     }
-  }, [shouldUpdate, selectedNetwork, data, db, setData, wallets]);
+  }, [
+    shouldUpdate,
+    selectedNetwork,
+    data,
+    db,
+    setData,
+    wallets,
+    defaultWallet,
+  ]);
   const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
     useState(false);
@@ -628,6 +684,35 @@ const WalletView = () => {
           </>
         )}
         <Row gutter={48} justify="start" align="middle">
+          {defaultWallet && (
+            <Col span={8} key="Col_wallet">
+              <Wallet
+                key="defaultWallet"
+                casperPrice={casperPrice}
+                setData={setData}
+                data={data}
+                setWallets={setWallets}
+                wallets={wallets}
+                shouldUpdate={shouldUpdate}
+                setShouldUpdate={setShouldUpdate}
+                db={db}
+                id={defaultWallet._id}
+                tag={defaultWallet.walletName}
+                wallet={defaultWallet}
+                title={
+                  defaultWallet?.balance.toLocaleString().startsWith('Inactive')
+                    ? defaultWallet.balance
+                    : `${defaultWallet.balance.toFixed(5)} CSPR`
+                }
+                amount={
+                  defaultWallet?.amount?.toLocaleString().startsWith('')
+                    ? `${defaultWallet.amount.toFixed(5)} USD`
+                    : `${defaultWallet.amount.toFixed(5).toLocaleString()} USD`
+                }
+              />
+            </Col>
+          )}
+
           {wallets?.length > 0 &&
             wallets?.map((wallet, i) => (
               <Col span={8} key={i}>
