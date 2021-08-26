@@ -68,16 +68,47 @@ const HistoryView = () => {
             pendingOperation.network === selectedNetwork &&
             pendingOperation.wallet === selectedWallet.accountHex
           ) {
+            console.log('IN OTHER IF')
             const today = new Date();
             const diffMs = today - new Date(pendingOperation.createdAt); // milliseconds between now & creation of history
             const diffMins = Math.floor(diffMs / 1000 / 60); // minutes
-            if (diffMins > 10 && pendingOperation.method !== 'Failed') {
-              console.log('=======================');
-              await pendingHistoryDB.update(
-                { _id: pendingOperation._id },
-                { ...pendingOperation, method: 'Failed' }
-              );
-              pendingOperation.method = 'Failed';
+            if (diffMins > 10 && pendingOperation.method === 'Failed') {
+              var axios = require('axios');
+              var data = JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'info_get_deploy',
+                params: [pendingOperation.deployHash],
+                id: 1,
+              });
+
+              var config = {
+                method: 'post',
+                url: 'http://testnet.gosuto.io:7777/rpc',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                data: data,
+              };
+              let response = await axios(config);
+              console.log('RESPONSE AXIOS = ', response);
+              let executionResult =
+                response.data.result.execution_results[0].result;
+              if (executionResult.Failure) {
+                console.log('FAIL=======================');
+                await pendingHistoryDB.update(
+                  { _id: pendingOperation._id },
+                  { ...pendingOperation, method: 'Failed' }
+                );
+                pendingOperation.method = 'Failed';
+              }
+              else if (executionResult.Success) {
+                console.log('SUCCESS=======================');
+                await pendingHistoryDB.update(
+                  { _id: pendingOperation._id },
+                  { ...pendingOperation, method: 'Undelegation' }
+                );
+                pendingOperation.method = 'Undelegation';
+              }
               newPending.push(pendingOperation);
             } else {
               newPending.push(pendingOperation);
@@ -98,7 +129,9 @@ const HistoryView = () => {
           historyLastUpdate: new Date(),
           shouldUpdateHistory: false,
         });
-      } catch (error) {}
+      } catch (error) {
+        console.log('get histroy error = ', error)
+      }
     }
 
     if (
