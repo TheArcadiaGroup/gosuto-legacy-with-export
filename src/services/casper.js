@@ -199,7 +199,7 @@ export const getCasperMarketInformation = async () => {
       casperPriceChangePercentage24h,
     };
   } catch (error) {
-    console.log('getCasperMarketInformation Error');
+    console.log('getCasperMarketInformation Error : ', error);
   }
 };
 
