@@ -6,8 +6,11 @@ import '../App.global.scss';
 import WalletContext from '../contexts/WalletContext';
 import axios from 'axios';
 import tinydate from 'tinydate';
+// import { data } from '../../data';
+import { session } from 'electron';
 
 const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
+  // const deploy = data.deploy;
   console.log('callbackURL from sign = ', callbackURL);
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const port = parseInt(
@@ -17,7 +20,25 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
     ),
     10
   );
+  const hexToDecimal = (bytes) => {
+    return parseInt(bytes, 16);
+  };
+  const bytesToString = (bytes) => {
+    return String.fromCharCode(bytes);
+  };
+  //obj {bytes,cl_type}
+  const convertData = (obj) => {
+    if (obj.cl_type === 'String') {
+      return bytesToString(obj.bytes);
+    }
+    if (obj.cl_type.startsWith('U')) return hexToDecimal(obj.bytes);
 
+    return formatLongStrings(obj.bytes);
+  };
+  const resolveTransferType = (data) => {
+    if (data.session.StoredContractByHash) return 'Contract Interaction';
+    return 'Transfer';
+  };
   // console.log('json parse = ', JSON.stringify(deploy));
   const onSignDeploy = async () => {
     console.log('signing...');
@@ -42,7 +63,10 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
     return (
       <div className="modal-row">
         <div>
-          <b className="font-12" style={{ fontWeight: 'bolder' }}>
+          <b
+            className="font-12"
+            style={{ fontWeight: 'bolder', textTransform: 'capitalize' }}
+          >
             {title ? title : 'error'}
           </b>
         </div>
@@ -82,26 +106,31 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
       <Divider className="divider-style" />
       <RenderRow
         title="Transaction Fee"
-        data={deploy?.header?.gas_price + ' motes'}
+        data={
+          hexToDecimal(deploy?.payment?.ModuleBytes?.args[0][1]?.bytes) +
+          ' motes'
+        }
       />
       <Divider className="divider-style" />
-      <RenderRow title="Deploy Type" data="Transfer" />
+      <RenderRow title="Deploy Type" data={resolveTransferType(deploy)} />
       <Divider className="divider-style" />
       <p className="title font-12 " style={{ marginTop: 0, marginBottom: 0 }}>
         Transfer Data
       </p>
       <Divider className="divider-style" />
-      <RenderRow
-        title="Recepient (Hash)"
-        data={formatLongStrings(deploy?.session?.StoredContractByHash?.hash)}
-      />
-      <Divider className="divider-style" />
-      <RenderRow title="Recepient (Key)" data={'todo'} />
-      <Divider className="divider-style" />
-      <RenderRow title="Amount" data={'todo'} />
-      <Divider className="divider-style" />
-      <RenderRow title="Transfer Id" data={'todo'} />
-      <Divider className="divider-style" />
+      {Object.values(deploy.session)[0].args.map((row) => (
+        <>
+          <RenderRow
+            title={row[0]}
+            data={
+              row[0] === 'amount'
+                ? convertData(row[1]) + ' motes'
+                : convertData(row[1])
+            }
+          />
+          <Divider className="divider-style" />
+        </>
+      ))}
       <div
         style={{
           display: 'flex',
