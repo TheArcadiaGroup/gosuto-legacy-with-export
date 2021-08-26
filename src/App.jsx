@@ -97,8 +97,9 @@ const { ipcRenderer, remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
-
 function App() {
+  const [walletsData, setWalletsData] = useState([]);
+
   const [text, setText] = useState('');
   const [deepLinkRet, setDeepLinkRet] = useState('');
   const [signatureRequestData, setSignatureRequestData] = useState({});
@@ -199,6 +200,8 @@ function App() {
           timestampData: true,
         });
         const wallets = await db.find({});
+        setWalletsData(wallets);
+
         if (wallets.length > 0) setSelectedWallet(wallets[0]);
       }
     }
@@ -336,7 +339,14 @@ function App() {
                     }}
                     style={{ top: 10 }}
                     width={350}
-                    visible={isModalVisible}
+                    visible={
+                      isModalVisible &&
+                      walletsData.some(
+                        (w) =>
+                          w.accountHex ===
+                          signatureRequestData.deploy.header.account
+                      )
+                    }
                     changeVisibility={setIsModalVisible}
                     // children={signDeploySystem()}
                     // customOnCancelLogic={customOnCancelLogic}
