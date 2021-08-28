@@ -8,7 +8,7 @@ import '../App.global.scss';
 
 // fake data
 import fakeCards from '../HistoryCards.js';
-import { getAccountHistory } from '../services/casper';
+import { getAccountHistory, getEndpointByNetwork } from '../services/casper';
 import WalletContext from '../contexts/WalletContext';
 import DataContext from '../contexts/DataContext';
 import NetworkContext from '../contexts/NetworkContext';
@@ -24,11 +24,11 @@ const HistoryView = () => {
   const [history, setHistory] = useState();
   const handleTagClick = (filter) => {
     setSelectedTag(filter);
-    setCardsToDisplay(
+    const newHistory =
       filter === 'All'
         ? history
-        : history?.filter((card) => card.method === filter)
-    );
+        : history?.filter((card) => card.method.indexOf(filter) >= 0);
+    setCardsToDisplay(newHistory);
   };
   useEffect(() => {
     async function getHistory() {
@@ -68,11 +68,12 @@ const HistoryView = () => {
             pendingOperation.network === selectedNetwork &&
             pendingOperation.wallet === selectedWallet.accountHex
           ) {
-            console.log('IN OTHER IF')
+            console.log('IN OTHER IF');
             const today = new Date();
-            const diffMs = today - new Date(pendingOperation.createdAt); // milliseconds between now & creation of history
+            const diffMs = today - new Date(pendingOperation.timestamp); // milliseconds between now & creation of history
             const diffMins = Math.floor(diffMs / 1000 / 60); // minutes
-            if (diffMins > 10 && pendingOperation.method === 'Failed') {
+            console.log('pendingOperation = ', pendingOperation);
+            if (diffMins > 3 && pendingOperation.method !== 'Failed') {
               var axios = require('axios');
               var data = JSON.stringify({
                 jsonrpc: '2.0',
@@ -83,7 +84,7 @@ const HistoryView = () => {
 
               var config = {
                 method: 'post',
-                url: 'http://testnet.gosuto.io:7777/rpc',
+                url: getEndpointByNetwork(setSelectedNetwork),
                 headers: {
                   'Content-Type': 'application/json',
                 },
@@ -100,14 +101,13 @@ const HistoryView = () => {
                   { ...pendingOperation, method: 'Failed' }
                 );
                 pendingOperation.method = 'Failed';
-              }
-              else if (executionResult.Success) {
+              } else if (executionResult.Success) {
                 console.log('SUCCESS=======================');
                 await pendingHistoryDB.update(
                   { _id: pendingOperation._id },
-                  { ...pendingOperation, method: 'Undelegation' }
+                  { ...pendingOperation, method: 'Staking - Undelegation' }
                 );
-                pendingOperation.method = 'Undelegation';
+                pendingOperation.method = 'Staking - Undelegation';
               }
               newPending.push(pendingOperation);
             } else {
@@ -130,7 +130,7 @@ const HistoryView = () => {
           shouldUpdateHistory: false,
         });
       } catch (error) {
-        console.log('get histroy error = ', error)
+        console.log('get histroy error = ', error);
       }
     }
 

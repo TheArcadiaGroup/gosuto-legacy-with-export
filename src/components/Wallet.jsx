@@ -85,6 +85,7 @@ const Wallet = ({
           setData({
             ...data,
             shouldUpdateWallet: true,
+            shouldUpdateWallets: true,
             shouldUpdateHistory: true,
             shouldUpdateStaking: true,
           });
@@ -157,6 +158,8 @@ const Wallet = ({
   };
   const onChangeNote = (event) => {
     console.log('note changed', event.target.value);
+    if (event.target.value.indexOf('-') >= 0) return;
+    if (Number.isNaN(event.target.value)) return;
     if (event.target.value.indexOf('e') < 0) setNote(event.target.value);
   };
   const handleSelect = (value) => {
@@ -230,13 +233,14 @@ const Wallet = ({
                     (evt.key === 'e' ||
                       evt.key === '.' ||
                       evt.key === ',' ||
+                      evt.key === '-' ||
                       evt.key === '`') &&
                     evt.preventDefault()
                   }
                 />
                 {note && note > 18446744073709551615 && (
                   <p style={{ color: 'red', fontSize: 13 }}>
-                    Transfer ID should be positive number smaller than
+                    Transfer ID should be a positive number smaller than
                     18446744073709551615
                   </p>
                 )}
@@ -704,7 +708,7 @@ const Wallet = ({
                 type="primary"
                 className="send-button"
                 onClick={showModal}
-                disabled={wallet.balance < 2.5 - 0.00001}
+                // disabled={wallet.balance < 2.5 - 0.00001}
               >
                 Send
               </Button>

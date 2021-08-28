@@ -531,6 +531,8 @@ const WalletView = () => {
       </Button>
     );
   };
+  const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
+
   useEffect(() => {
     async function getDefaultWallet(withGetBalances) {
       console.log('getting Default wallet');
@@ -560,7 +562,7 @@ const WalletView = () => {
       }
     }
     getDefaultWallet(true);
-  }, [selectedNetwork]);
+  }, [selectedNetwork, selectedWallet]);
 
   useEffect(() => {
     async function getWallets(withGetBalances) {
@@ -568,6 +570,7 @@ const WalletView = () => {
       console.log('getting wallets');
       const walletsDb = await db.find({});
       let filtredWallets = [];
+
       if (localStorage.getItem('defaultWallet')) {
         const dw = JSON.parse(localStorage.getItem('defaultWallet'));
         filtredWallets = walletsDb.filter((wallet) => {
@@ -633,6 +636,7 @@ const WalletView = () => {
     setData,
     wallets,
     defaultWallet,
+    selectedWallet,
   ]);
   const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
@@ -715,32 +719,62 @@ const WalletView = () => {
 
           {wallets?.length > 0 &&
             wallets?.map((wallet, i) => (
-              <Col span={8} key={i}>
-                <Wallet
-                  key={`wallet_${i}`}
-                  casperPrice={casperPrice}
-                  setData={setData}
-                  data={data}
-                  setWallets={setWallets}
-                  wallets={wallets}
-                  shouldUpdate={shouldUpdate}
-                  setShouldUpdate={setShouldUpdate}
-                  db={db}
-                  id={wallet._id}
-                  tag={wallet.walletName}
-                  wallet={wallet}
-                  title={
-                    wallet?.balance.toLocaleString().startsWith('Inactive')
-                      ? wallet.balance
-                      : `${wallet.balance.toFixed(5)} CSPR`
-                  }
-                  amount={
-                    wallet?.amount?.toLocaleString().startsWith('')
-                      ? `${wallet.amount.toFixed(5)} USD`
-                      : `${wallet.amount.toFixed(5).toLocaleString()} USD`
-                  }
-                />
-              </Col>
+              <>
+                {selectedWallet._id != wallet._id && (
+                  <Col span={8} key={i}>
+                    <Wallet
+                      key={`wallet_${i}`}
+                      casperPrice={casperPrice}
+                      setData={setData}
+                      data={data}
+                      setWallets={setWallets}
+                      wallets={wallets}
+                      shouldUpdate={shouldUpdate}
+                      setShouldUpdate={setShouldUpdate}
+                      db={db}
+                      id={wallet._id}
+                      tag={wallet.walletName}
+                      wallet={wallet}
+                      title={
+                        wallet?.balance.toLocaleString().startsWith('Inactive')
+                          ? wallet.balance
+                          : `${wallet.balance.toFixed(5)} CSPR`
+                      }
+                      amount={
+                        wallet?.amount?.toLocaleString().startsWith('')
+                          ? `${wallet.amount.toFixed(5)} USD`
+                          : `${wallet.amount.toFixed(5).toLocaleString()} USD`
+                      }
+                    />
+                  </Col>
+                )}
+                {/* <Col span={8} key={i}>
+                  <Wallet
+                    key={`wallet_${i}`}
+                    casperPrice={casperPrice}
+                    setData={setData}
+                    data={data}
+                    setWallets={setWallets}
+                    wallets={wallets}
+                    shouldUpdate={shouldUpdate}
+                    setShouldUpdate={setShouldUpdate}
+                    db={db}
+                    id={wallet._id}
+                    tag={wallet.walletName}
+                    wallet={wallet}
+                    title={
+                      wallet?.balance.toLocaleString().startsWith('Inactive')
+                        ? wallet.balance
+                        : `${wallet.balance.toFixed(5)} CSPR`
+                    }
+                    amount={
+                      wallet?.amount?.toLocaleString().startsWith('')
+                        ? `${wallet.amount.toFixed(5)} USD`
+                        : `${wallet.amount.toFixed(5).toLocaleString()} USD`
+                    }
+                  />
+                </Col> */}
+              </>
             ))}
         </Row>
       </div>
