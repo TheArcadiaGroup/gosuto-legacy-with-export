@@ -411,10 +411,7 @@ const StakingView = () => {
           shouldUpdateStaking: true,
         });
       }
-    } catch (error) {
-      alert('error');
-      alert(error);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -498,6 +495,7 @@ const StakingView = () => {
           <AddWallet
             customOnCancelLogic={customOnCancelLogic}
             title="Earn with Arcadia"
+            disabled={accountBalance === 0}
             children={earnModalSystem()}
             footer={[
               <div

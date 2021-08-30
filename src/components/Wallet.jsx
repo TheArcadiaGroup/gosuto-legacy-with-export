@@ -482,8 +482,6 @@ const Wallet = ({
       setIsPendingTransfer(false);
       setSendComplete(true);
     } catch (error) {
-      alert('error');
-      alert(error);
     }
   };
 
