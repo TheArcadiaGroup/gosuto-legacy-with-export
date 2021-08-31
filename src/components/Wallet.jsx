@@ -267,11 +267,9 @@ const Wallet = ({
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
                   disabled={
-                    (!(
-                      amountToSend < 2.5 ||
-                      amountToSend > wallet.balance - 0.00001
-                    ) &&
-                      !recipient) ||
+                    amountToSend < 2.5 ||
+                    amountToSend > wallet.balance - 0.00001 ||
+                    !recipient ||
                     note > 18446744073709551615
                   }
                 >
@@ -481,8 +479,7 @@ const Wallet = ({
 
       setIsPendingTransfer(false);
       setSendComplete(true);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const customOnCancelLogic = () => {
