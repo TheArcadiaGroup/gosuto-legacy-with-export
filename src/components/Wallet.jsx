@@ -85,6 +85,7 @@ const Wallet = ({
           setData({
             ...data,
             shouldUpdateWallet: true,
+            shouldUpdateWallets: true,
             shouldUpdateHistory: true,
             shouldUpdateStaking: true,
           });
@@ -157,6 +158,8 @@ const Wallet = ({
   };
   const onChangeNote = (event) => {
     console.log('note changed', event.target.value);
+    if (event.target.value.indexOf('-') >= 0) return;
+    if (Number.isNaN(event.target.value)) return;
     if (event.target.value.indexOf('e') < 0) setNote(event.target.value);
   };
   const handleSelect = (value) => {
@@ -230,13 +233,14 @@ const Wallet = ({
                     (evt.key === 'e' ||
                       evt.key === '.' ||
                       evt.key === ',' ||
+                      evt.key === '-' ||
                       evt.key === '`') &&
                     evt.preventDefault()
                   }
                 />
                 {note && note > 18446744073709551615 && (
                   <p style={{ color: 'red', fontSize: 13 }}>
-                    Transfer ID should be positive number smaller than
+                    Transfer ID should be a positive number smaller than
                     18446744073709551615
                   </p>
                 )}
@@ -263,11 +267,9 @@ const Wallet = ({
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
                   disabled={
-                    (!(
-                      amountToSend < 2.5 ||
-                      amountToSend > wallet.balance - 0.00001
-                    ) &&
-                      !recipient) ||
+                    amountToSend < 2.5 ||
+                    amountToSend > wallet.balance - 0.00001 ||
+                    !recipient ||
                     note > 18446744073709551615
                   }
                 >
@@ -477,10 +479,7 @@ const Wallet = ({
 
       setIsPendingTransfer(false);
       setSendComplete(true);
-    } catch (error) {
-      alert('error');
-      alert(error);
-    }
+    } catch (error) {}
   };
 
   const customOnCancelLogic = () => {
@@ -691,6 +690,7 @@ const Wallet = ({
                     role="menubar"
                     className="ant-dropdown-link dropdown-menu"
                     // onClick={(e) => e.preventDefault()}
+                    style={{ cursor: 'pointer' }}
                   >
                     . . .
                   </div>
@@ -703,7 +703,7 @@ const Wallet = ({
                 type="primary"
                 className="send-button"
                 onClick={showModal}
-                disabled={wallet.balance < 2.5 - 0.00001}
+                // disabled={wallet.balance < 2.5 - 0.00001}
               >
                 Send
               </Button>

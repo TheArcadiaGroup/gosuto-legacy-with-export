@@ -190,6 +190,7 @@ const StakingView = () => {
             <div>
               <div>
                 <InputNumber
+                  type="number"
                   className="modal-input-amount"
                   min={0.000000001}
                   max={parseFloat(accountBalance - 2.5 - 3)}
@@ -410,10 +411,7 @@ const StakingView = () => {
           shouldUpdateStaking: true,
         });
       }
-    } catch (error) {
-      alert('error');
-      alert(error);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -497,6 +495,7 @@ const StakingView = () => {
           <AddWallet
             customOnCancelLogic={customOnCancelLogic}
             title="Earn with Arcadia"
+            disabled={accountBalance === 0}
             children={earnModalSystem()}
             footer={[
               <div
@@ -515,6 +514,7 @@ const StakingView = () => {
         delegationOperations={delegationOperations}
         contextData={data}
         setContextData={setData}
+        casperPrice={casperPrice}
       />
     </>
   );
