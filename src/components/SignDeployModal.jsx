@@ -24,7 +24,8 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
     return parseInt(bytes, 16);
   };
   const bytesToString = (bytes) => {
-    return String.fromCharCode(bytes);
+    const textBuffer = Buffer.from(bytes, 'hex');
+    return textBuffer.toString();
   };
   //obj {bytes,cl_type}
   const convertData = (obj) => {
@@ -48,6 +49,7 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
       privateKey: selectedWallet?.privateKeyUint8,
       callbackURL,
     });
+    alert(response.data);
     console.log('response.data = ', response.data);
   };
 
@@ -115,7 +117,7 @@ const SignDeployModal = ({ deploy, callbackURL, setIsModalVisible }) => {
       <RenderRow title="Deploy Type" data={resolveTransferType(deploy)} />
       <Divider className="divider-style" />
       <p className="title font-12 " style={{ marginTop: 0, marginBottom: 0 }}>
-        Transfer Data
+        Deploy Data
       </p>
       <Divider className="divider-style" />
       {Object.values(deploy.session)[0].args.map((row) => (
