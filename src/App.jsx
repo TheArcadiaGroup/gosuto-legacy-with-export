@@ -116,16 +116,15 @@ function App() {
   useEffect(() => {
     ipcRenderer.on('deep-link', (event, args) => {
       const URIComponent = decodeURIComponent(args);
-      //URIComponet=".....gosuto://jsonString\?callbackURL=callbackURL"
-      //extracting the stringified json object from URIComponent
+      // URIComponet=".....gosuto://jsonString\?callbackURL=callbackURL"
+      // extracting the stringified json object from URIComponent
       const jsonString = URIComponent.slice(
         URIComponent.indexOf('gosuto://'),
-        URIComponent.indexOf('?callbackURL=')
+        URIComponent.indexOf('?callbackURL=') + 1
       )
         .replace('gosuto://', '')
         .trim()
         .slice(0, URIComponent.lastIndexOf('\\'));
-
       const callbackURL = URIComponent.slice(
         URIComponent.indexOf('?callbackURL=')
       )
@@ -141,7 +140,7 @@ function App() {
       }
 
       setIsModalVisible(true);
-      //old Code
+      // old Code
       // const data = decodeURIComponent(args);
       // const deploy = data
       //   .substr(0, data.indexOf('?callback'))
@@ -191,19 +190,17 @@ function App() {
   const [selectedNetwork, setSelectedNetwork] = useState('casper');
   useEffect(() => {
     async function getAccountInformation() {
+      const db = Datastore.create({
+        filename: `${remote.app.getPath('userData')}/wallets.db`,
+        timestampData: true,
+      });
+      const wallets = await db.find({});
+      setWalletsData(wallets);
+
       const defaultWallet = localStorage.getItem('defaultWallet');
       if (defaultWallet) {
         setSelectedWallet(JSON.parse(defaultWallet));
-      } else {
-        const db = Datastore.create({
-          filename: `${remote.app.getPath('userData')}/wallets.db`,
-          timestampData: true,
-        });
-        const wallets = await db.find({});
-        setWalletsData(wallets);
-
-        if (wallets.length > 0) setSelectedWallet(wallets[0]);
-      }
+      } else if (wallets.length > 0) setSelectedWallet(wallets[0]);
     }
 
     getAccountInformation();
