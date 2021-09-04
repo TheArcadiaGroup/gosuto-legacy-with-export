@@ -8,6 +8,9 @@ const GeneralModal = ({
   children,
   footer,
   customOnCancelLogic,
+  width,
+  bodyStyle,
+  style,
 }) => {
   const handleOk = () => {
     changeVisibility(false);
@@ -27,6 +30,9 @@ const GeneralModal = ({
         onOk={handleOk}
         onCancel={handleCancel}
         footer={null}
+        width={width}
+        bodyStyle={bodyStyle}
+        style={style}
       >
         {children}
       </Modal>

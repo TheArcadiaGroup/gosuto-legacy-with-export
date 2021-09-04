@@ -214,7 +214,7 @@ server.post('/sign', async function (req, res) {
   try {
     let { deploy, privateKey, callbackURL } = req.body;
     console.log('received callbackURL = ', callbackURL);
-    deploy = JSON.parse(deploy);
+    // deploy = JSON.parse(deploy);
     const client = new CasperClient(getEndpointByNetwork(''));
     // client.signDeploy
     const ll = JSON.stringify(privateKey)
@@ -232,9 +232,16 @@ server.post('/sign', async function (req, res) {
     const testFromJson = DeployUtil.deployFromJson(deploy);
     const signedDeploy = client.signDeploy(testFromJson, keyPair);
     console.log('signedDeploy = ', signedDeploy);
-    await axios.post(callbackURL, {
-      signedDeploy: DeployUtil.deployToJson(signedDeploy),
-    });
+
+    await axios.post(
+      callbackURL,
+      {
+        signedDeploy: DeployUtil.deployToJson(signedDeploy),
+      },
+      {
+        timeout: 2000,
+      }
+    );
     res.send({ signedDeploy });
   } catch (error) {
     console.log('error = ', error);

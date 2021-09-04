@@ -97,8 +97,9 @@ const { ipcRenderer, remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
-
 function App() {
+  const [walletsData, setWalletsData] = useState([]);
+
   const [text, setText] = useState('');
   const [deepLinkRet, setDeepLinkRet] = useState('');
   const [signatureRequestData, setSignatureRequestData] = useState({});
@@ -114,20 +115,42 @@ function App() {
 
   useEffect(() => {
     ipcRenderer.on('deep-link', (event, args) => {
-      // console.log('IN DEEPLINK');
-      // console.log('event = ', event);
-      console.log('args = ', decodeURIComponent(args));
-      const data = decodeURIComponent(args);
-      const deploy = data
-        .substr(0, data.indexOf('?callback'))
-        .replace('gosuto://', '');
-      console.log('deploy = ', deploy);
-      const callbackURL = data
-        .substr(data.indexOf('?callback') + 10, data.length)
+      const URIComponent = decodeURIComponent(args);
+      //URIComponet=".....gosuto://jsonString\?callbackURL=callbackURL"
+      //extracting the stringified json object from URIComponent
+      const jsonString = URIComponent.slice(
+        URIComponent.indexOf('gosuto://'),
+        URIComponent.indexOf('?callbackURL=')
+      )
+        .replace('gosuto://', '')
+        .trim()
+        .slice(0, URIComponent.lastIndexOf('\\'));
+
+      const callbackURL = URIComponent.slice(
+        URIComponent.indexOf('?callbackURL=')
+      )
+        .replace('?callbackURL=', '')
         .trim();
-      console.log('callbackURL = ', callbackURL);
-      setSignatureRequestData({ deploy, callbackURL });
+
+      let jsonData;
+      try {
+        jsonData = JSON.parse(jsonString);
+        setSignatureRequestData({ deploy: jsonData.deploy, callbackURL });
+      } catch (error) {
+        console.log(error);
+      }
+
       setIsModalVisible(true);
+      //old Code
+      // const data = decodeURIComponent(args);
+      // const deploy = data
+      //   .substr(0, data.indexOf('?callback'))
+      //   .replace('gosuto://', '');
+      // console.log('deploy = ', deploy);
+      // const callbackURL = data
+      //   .substr(data.indexOf('?callback') + 10, data.length)
+      //   .trim();
+      // console.log('callbackURL = ', callbackURL);
     });
     return () => {
       ipcRenderer.removeAllListeners('deep-link');
@@ -177,6 +200,8 @@ function App() {
           timestampData: true,
         });
         const wallets = await db.find({});
+        setWalletsData(wallets);
+
         if (wallets.length > 0) setSelectedWallet(wallets[0]);
       }
     }
@@ -307,23 +332,38 @@ function App() {
                 </Sider>
                 <Content className="site-layout-background">
                   <GeneralModal
-                    visible={isModalVisible}
+                    bodyStyle={{
+                      background: '#f2f3f5',
+                      overflow: 'scroll',
+                      maxHeight: '95vh',
+                    }}
+                    style={{ top: 10 }}
+                    width={350}
+                    visible={
+                      isModalVisible &&
+                      walletsData.some(
+                        (w) =>
+                          w.accountHex ===
+                          signatureRequestData.deploy.header.account
+                      )
+                    }
                     changeVisibility={setIsModalVisible}
                     // children={signDeploySystem()}
                     // customOnCancelLogic={customOnCancelLogic}
-                    footer={[
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center' }}
-                      >
-                        <Button type="primary" className="send-button">
-                          Next
-                        </Button>
-                      </div>,
-                    ]}
+                    // footer={[
+                    //   <div
+                    //     style={{ display: 'flex', justifyContent: 'center' }}
+                    //   >
+                    //     <Button type="primary" className="send-button">
+                    //       Next
+                    //     </Button>
+                    //   </div>,
+                    // ]}
                   >
                     <SignDeployModal
                       deploy={signatureRequestData.deploy}
                       callbackURL={signatureRequestData.callbackURL}
+                      setIsModalVisible={setIsModalVisible}
                     />
                   </GeneralModal>
                   ;

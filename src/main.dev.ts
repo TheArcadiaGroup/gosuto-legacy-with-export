@@ -18,7 +18,7 @@ import MenuBuilder from './menu';
 import server from './server';
 
 let port;
-const s = server.listen(0, function() {
+const s = server.listen(0, function () {
   port = s.address().port;
 });
 
@@ -68,8 +68,9 @@ if (gotTheLock) {
       // Keep only command line / deep linked arguments
       deeplinkingUrl = argv.slice(1);
     }
-
     if (mainWindow) {
+      mainWindow.webContents.send('deep-link', deeplinkingUrl);
+
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
@@ -88,9 +89,9 @@ const createWindow = async () => {
 
   if (process.platform == 'win32') {
     // Keep only command line / deep linked arguments
-    deeplinkingUrl = process.argv.slice(1)
+    deeplinkingUrl = process.argv.slice(1);
+    mainWindow?.webContents.send('deep-link', deeplinkingUrl);
   }
-
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -171,9 +172,9 @@ const sendStatusToWindow = (text) => {
 };
 
 app.whenReady().then(createWindow).catch(console.log);
-app.on('will-finish-launching', function() {
+app.on('will-finish-launching', function () {
   // Protocol handler for osx
-  app.on('open-url', function(event, data) {
+  app.on('open-url', function (event, data) {
     event.preventDefault();
     deeplinkingUrl = data;
     console.log('event!!!');
@@ -187,8 +188,7 @@ app.on('will-finish-launching', function() {
 
     sendDeepLinkToWindow(deeplinkingUrl);
   });
-
-})
+});
 
 // This will catch clicks on links such as <a href="foobar://abc=1">open in foobar</a>
 
@@ -225,6 +225,7 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     });
   });
 });
+
 
 // autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
 //   sendStatusToWindow('Update available...');
