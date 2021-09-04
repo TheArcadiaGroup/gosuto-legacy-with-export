@@ -220,21 +220,25 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
   };
 
   dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall();
+    if (returnValue.response === 0) setImmediate(() => {
+      autoUpdater.quitAndInstall();
+    });
   });
 });
 
-autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
-  sendStatusToWindow('Update available...');
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Restart', 'Later'],
-    title: 'update-available',
-    message: process.platform === 'win32' ? releaseNotes : releaseName,
-    detail: 'update-available',
-  };
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall();
-  });
-});
+// autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
+//   sendStatusToWindow('Update available...');
+//   const dialogOpts = {
+//     type: 'info',
+//     buttons: ['Restart', 'Later'],
+//     title: 'update-available',
+//     message: process.platform === 'win32' ? releaseNotes : releaseName,
+//     detail: 'An update is available.',
+//   };
+
+//   dialog.showMessageBox(dialogOpts).then((returnValue) => {
+//     if (returnValue.response === 0) autoUpdater.quitAndInstall();
+//   });
+// });
+

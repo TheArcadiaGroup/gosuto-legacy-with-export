@@ -109,16 +109,33 @@ server.post('/delegate', async function (req, res) {
       keyPair.publicKey,
       network
     );
+    // const payment = DeployUtil.standardPayment(2500010000);
     const payment = DeployUtil.standardPayment(3000000000);
-    const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
-      contract,
-      RuntimeArgs.fromMap({
-        action: CLValue.string('delegate'),
-        delegator: CLValue.publicKey(keyPair.publicKey),
-        validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
-        amount: CLValue.u512(amountToDelegate),
-      })
+    const args = RuntimeArgs.fromMap({
+      delegator: CLValue.publicKey(keyPair.publicKey),
+      validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+      amount: CLValue.u512(amountToDelegate),
+    });
+    let contractHash =
+      'ccb576d6ce6dec84a551e48f0d0b7af89ddba44c7390b690036257a04a3ae9ea';
+    if (network === 'casper-test') {
+      contractHash =
+        '93d923e336b20a4c4ca14d592b60e5bd3fe330775618290104f9beb326db7ae2';
+    }
+    const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
+      Uint8Array.from(Buffer.from(contractHash, 'hex')),
+      'delegate',
+      args
     );
+    // const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
+    //   contract,
+    //   RuntimeArgs.fromMap({
+    //     action: CLValue.string('delegate'),
+    //     delegator: CLValue.publicKey(keyPair.publicKey),
+    //     validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+    //     amount: CLValue.u512(amountToDelegate),
+    //   })
+    // );
     const deploy = DeployUtil.makeDeploy(deployParams, session, payment);
     const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
     const executionResult = await client.putDeploy(signedDeploy);
@@ -152,17 +169,17 @@ server.post('/undelegate', async function (req, res) {
       keyPair.publicKey,
       network
     );
-    const payment = DeployUtil.standardPayment(500000000);
+    const payment = DeployUtil.standardPayment(10000);
     const args = RuntimeArgs.fromMap({
       delegator: CLValue.publicKey(keyPair.publicKey),
       validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
       amount: CLValue.u512(amountToUndelegate),
     });
     let contractHash =
-      '73c9589d8bebbf6dc853707c5e157145c2d8ac8765f93ba3342a7cc2908b2346';
+      'ccb576d6ce6dec84a551e48f0d0b7af89ddba44c7390b690036257a04a3ae9ea';
     if (network === 'casper-test') {
       contractHash =
-        '68e15f19eb37e6062c1a73d26acf3793bf39027713db6c4ff2baad6e7a5054f1';
+        '93d923e336b20a4c4ca14d592b60e5bd3fe330775618290104f9beb326db7ae2';
     }
     const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
       Uint8Array.from(Buffer.from(contractHash, 'hex')),

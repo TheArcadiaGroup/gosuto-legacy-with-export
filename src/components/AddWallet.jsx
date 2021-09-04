@@ -12,9 +12,10 @@ const AddWallet = ({
   customOnCancelLogic,
   isModalVisible,
   setIsModalVisible,
+  disabled,
 }) => {
   const showModal = () => {
-    setIsModalVisible(true);
+    if (!disabled) setIsModalVisible(true);
   };
   const [backupIsModalVisible, setBackupIsModalVisible] = useState(false);
   isModalVisible = isModalVisible || backupIsModalVisible;
