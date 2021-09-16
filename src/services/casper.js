@@ -67,7 +67,6 @@ export const getWalletBalancesSum = async (publicKeys, network) => {
           network
         );
       } catch (error) {
-        // alert('error')
         console.log('ERROR');
       }
     }
@@ -83,7 +82,6 @@ export const getTotalStakedSum = async (publicKeys, network) => {
         const element = publicKeys[index];
         sum += (await getUserDelegatedAmount(element)).stakedAmount;
       } catch (error) {
-        // alert('error')
       }
     }
     return sum;
