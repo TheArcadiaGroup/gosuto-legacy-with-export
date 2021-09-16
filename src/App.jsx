@@ -21,9 +21,10 @@ import { mnemonicToSeed } from 'bip39';
 import Datastore from 'nedb-promises';
 import Home from './Home';
 import WalletView from './Views/WalletView';
+import ERCView from './Views/ERCView';
 import HistoryView from './Views/HistoryView';
 import StakingView from './Views/StakingView';
-import SwapView from './Views/SwapView';
+//import SwapView from './Views/SwapView';
 
 // logo
 import logo from '../assets/icons/gosuto-logo.png';
@@ -338,6 +339,9 @@ function App() {
                     <Menu.Item key="4" icon={<AreaChartOutlined />}>
                       <Link to="/staking">Staking</Link>
                     </Menu.Item>
+                    <Menu.Item key="5" icon={<SwapOutlined />}>
+                      <Link to="/erc">ERC20</Link>
+                    </Menu.Item>
                     {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
               </Menu.Item> */}
@@ -387,6 +391,7 @@ function App() {
                     <Route path="/staking" component={StakingView} />
                     <Route path="/history" component={HistoryView} />
                     <Route path="/wallet" component={WalletView} />
+                    <Route path="/erc" component={ERCView} />
                     {/* <Route path="/" component={PasswordView} /> */}
                     <Route path="/" component={Home} />
                   </Switch>

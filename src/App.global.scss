@@ -59,8 +59,19 @@ a {
 }
 .ant-input::placeholder {
   color: #a3a3a3;
+
   // text-align: center;
   padding: 10px;
+}
+.ant-switch-checked{
+  background-color: #64e5b8;
+}
+span.searchInput > input::placeholder {
+  color: #000852;
+}
+span.searchInput > input {
+  background-color: #d9ddff;
+  color: #000852;
 }
 
 a:hover {

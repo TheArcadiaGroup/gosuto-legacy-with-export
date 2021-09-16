@@ -12,7 +12,7 @@ const {
   BalanceServiceByJsonRPC,
 } = require('casper-client-sdk');
 const { default: axios } = require('axios');
-const { casperDelegationContractHexCode } = require('./utils/casper');
+const { casperDelegationContractHexCode, erc20MintableContractCode } = require('./utils/casper');
 
 server.use(express.json());
 
@@ -144,6 +144,7 @@ server.post('/delegate', async function (req, res) {
     res.send(error.toString());
   }
 });
+
 server.post('/undelegate', async function (req, res) {
   try {
     let { privateKey, validatorPublicKey, amountToUndelegate, network } =
@@ -264,6 +265,60 @@ server.post('/pem', async (req, res) => {
 
   const pem = keyPair.exportPrivateKeyInPem();
   res.send(pem);
+});
+
+server.post('/token/create', async function (req, res) {
+  try {
+    let {
+      privateKey,
+      network,
+      tokenName,
+      tokenTicker,
+      imageURL,
+      decimals,
+      initialSupply,
+      authorizedMinter,
+    } = req.body;
+
+    const client = new CasperClient(getEndpointByNetwork(network));
+    const contractCode = Uint8Array.from(
+      Buffer.from(erc20MintableContractCode, 'hex')
+    );
+    const ll = JSON.stringify(privateKey)
+      .replace('{', '')
+      .replace('}', '')
+      .split(',');
+    const newll = ll.map((val) => {
+      return parseInt(val.substr(val.indexOf(':') + 1, val.length));
+    });
+    privateKey = Uint8Array.from(newll);
+
+    const publicKey = Keys.Ed25519.privateToPublicKey(privateKey);
+    const keyPair = Keys.Ed25519.parseKeyPair(publicKey, privateKey);
+
+    const deployParams = new DeployUtil.DeployParams(
+      keyPair.publicKey,
+      network
+    );
+    const payment = DeployUtil.standardPayment(90000000000);
+
+    const session = DeployUtil.ExecutableDeployItem.newModuleBytes(
+      contractCode,
+      RuntimeArgs.fromMap({
+        token_name: CLValue.string(tokenName),
+        token_symbol: CLValue.string(tokenTicker),
+        token_decimals: CLValue.u8(decimals),
+        token_total_supply: CLValue.u256(initialSupply),
+        authorized_minter: CLValue.string(authorizedMinter),
+      })
+    );
+    const deploy = DeployUtil.makeDeploy(deployParams, session, payment);
+    const signedDeploy = DeployUtil.signDeploy(deploy, keyPair);
+    const executionResult = await client.putDeploy(signedDeploy);
+    res.send(executionResult);
+  } catch (error) {
+    res.send(error.toString());
+  }
 });
 
 module.exports = server;

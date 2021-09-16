@@ -143,17 +143,29 @@ const HistoryView = () => {
         (new Date() - data.historyLastUpdate) / 1000
       );
       if (selectedWallet?.accountHash) {
-        getHistory(data).then((allHistory) => {
-          setHistory(allHistory);
-          setCardsToDisplay(allHistory);
-          setPageLoading(false);
-          setData({
-            ...data,
-            history: allHistory,
-            historyLastUpdate: new Date(),
-            shouldUpdateHistory: false,
+        getHistory(data)
+          .then((allHistory) => {
+            setHistory(allHistory);
+            setCardsToDisplay(allHistory);
+            setPageLoading(false);
+            setData({
+              ...data,
+              history: allHistory,
+              historyLastUpdate: new Date(),
+              shouldUpdateHistory: false,
+            });
+          })
+          .catch((error) => {
+            setHistory([]);
+            setCardsToDisplay([]);
+            setPageLoading(false);
+            setData({
+              ...data,
+              history: [],
+              historyLastUpdate: new Date(),
+              shouldUpdateHistory: false,
+            });
           });
-        });
       }
     } else {
       console.log(
@@ -164,6 +176,10 @@ const HistoryView = () => {
       if (selectedWallet?.accountHash) {
         setHistory(data.history);
         setCardsToDisplay(data.history);
+        setPageLoading(false);
+      } else {
+        setHistory([]);
+        setCardsToDisplay([]);
         setPageLoading(false);
       }
     }
