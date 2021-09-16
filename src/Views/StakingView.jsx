@@ -286,7 +286,7 @@ const StakingView = () => {
                 </Button>
               </div>
             </div>
-            {!result.toUpperCase().startsWith('ERROR') && (
+            {!result?.toUpperCase().startsWith('ERROR') && (
               <>
                 <span className="modal-description">Explorer link</span>
                 <TextArea

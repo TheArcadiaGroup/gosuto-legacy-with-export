@@ -128,7 +128,7 @@ const CreateToken = (props) => {
         }
         const response = await createToken(
           wallet?.privateKeyUint8,
-          'casper-test',
+          selectedNetwork,
           tokenName,
           tokenTicker,
           imageUrl,
@@ -210,7 +210,7 @@ const CreateToken = (props) => {
             Copy
           </Button>
         </div>
-        {!apiresponse.toUpperCase().startsWith('ERROR') && (
+        {!apiresponse?.toUpperCase().startsWith('ERROR') && (
           <>
             <span className="modal-description">
               Explorer link{' '}
