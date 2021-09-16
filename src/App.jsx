@@ -118,38 +118,54 @@ function App() {
       const URIComponent = decodeURIComponent(args);
       // URIComponet=".....gosuto://jsonString\?callbackURL=callbackURL"
       // extracting the stringified json object from URIComponent
-      const jsonString = URIComponent.slice(
-        URIComponent.indexOf('gosuto://'),
-        URIComponent.indexOf('?callbackURL=') + 1
-      )
-        .replace('gosuto://', '')
-        .trim()
-        .slice(0, URIComponent.lastIndexOf('\\'));
-      const callbackURL = URIComponent.slice(
-        URIComponent.indexOf('?callbackURL=')
-      )
-        .replace('?callbackURL=', '')
-        .trim();
-
-      let jsonData;
-      try {
-        jsonData = JSON.parse(jsonString);
-        setSignatureRequestData({ deploy: jsonData.deploy, callbackURL });
-      } catch (error) {
-        console.log(error);
+      let method = URIComponent.slice(
+        URIComponent.indexOf('gosuto://') + 9,
+        URIComponent.length
+      );
+      method = method.slice(0, method.indexOf('/'));
+      if (method === 'sign_deploy') {
+        const jsonString = URIComponent.slice(
+          URIComponent.indexOf('sign_deploy/'),
+          URIComponent.indexOf('?callbackURL=') + 1
+        )
+          .replace('sign_deploy/', '')
+          .trim()
+          .slice(0, URIComponent.lastIndexOf('\\'));
+        const callbackURL = URIComponent.slice(
+          URIComponent.indexOf('?callbackURL=')
+        )
+          .replace('?callbackURL=', '')
+          .trim();
+        let jsonData;
+        try {
+          jsonData = JSON.parse(jsonString);
+          setSignatureRequestData({
+            deploy: jsonData.deploy,
+            callbackURL,
+            method: 'sign_deploy',
+          });
+        } catch (error) {
+          console.log(error);
+        }
+        setIsModalVisible(true);
       }
+      if (method === 'get_active_public_key') {
+        const callbackURL = URIComponent.slice(
+          URIComponent.indexOf('callbackURL=')
+        )
+          .replace('callbackURL=', '')
+          .trim();
 
-      setIsModalVisible(true);
-      // old Code
-      // const data = decodeURIComponent(args);
-      // const deploy = data
-      //   .substr(0, data.indexOf('?callback'))
-      //   .replace('gosuto://', '');
-      // console.log('deploy = ', deploy);
-      // const callbackURL = data
-      //   .substr(data.indexOf('?callback') + 10, data.length)
-      //   .trim();
-      // console.log('callbackURL = ', callbackURL);
+        try {
+          setSignatureRequestData({
+            callbackURL,
+            method: 'get_active_public_key',
+          });
+          setIsModalVisible(true);
+        } catch (error) {
+          console.log(error);
+        }
+      }
     });
     return () => {
       ipcRenderer.removeAllListeners('deep-link');
@@ -338,11 +354,12 @@ function App() {
                     width={350}
                     visible={
                       isModalVisible &&
-                      walletsData.some(
+                      (walletsData.some(
                         (w) =>
                           w.accountHex ===
-                          signatureRequestData.deploy.header.account
-                      )
+                          signatureRequestData?.deploy?.header?.account
+                      ) ||
+                        signatureRequestData.method === 'get_active_public_key')
                     }
                     changeVisibility={setIsModalVisible}
                     // children={signDeploySystem()}
@@ -360,6 +377,7 @@ function App() {
                     <SignDeployModal
                       deploy={signatureRequestData.deploy}
                       callbackURL={signatureRequestData.callbackURL}
+                      method={signatureRequestData.method}
                       setIsModalVisible={setIsModalVisible}
                     />
                   </GeneralModal>

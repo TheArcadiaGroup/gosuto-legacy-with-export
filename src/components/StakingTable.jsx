@@ -48,7 +48,6 @@ const StakingTable = ({
     }
   }, [delegationOperations]);
   const showModal = (publicKey) => {
-    // alert(validatorPublicKey)
     setValidatorPublicKey(publicKey);
     setIsModalVisible(true);
   };
