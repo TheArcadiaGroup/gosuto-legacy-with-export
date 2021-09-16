@@ -317,7 +317,10 @@ const StakingTable = ({
         customOnCancelLogic={customOnCancelLogic}
         children={undelegateModal()}
         footer={[
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div
+            style={{ display: 'flex', justifyContent: 'center' }}
+            key="undelegateBtn"
+          >
             <Button type="primary" className="send-button">
               Undelegate
             </Button>
