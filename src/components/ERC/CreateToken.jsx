@@ -1,12 +1,26 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { Modal, Input, Upload, message, Switch, Col, Row, Button } from 'antd';
+import {
+  Modal,
+  Input,
+  Upload,
+  message,
+  Switch,
+  Col,
+  Row,
+  Button,
+  notification,
+} from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import fs from 'fs';
 import { remote } from 'electron';
 import Datastore from 'nedb-promises';
+import { createToken } from '../../services/casper';
+import NetworkContext from '../../contexts/NetworkContext';
+import WalletContext from '../../contexts/WalletContext';
+import TextArea from 'rc-textarea';
 
 const CreateToken = (props) => {
   const {
@@ -18,21 +32,30 @@ const CreateToken = (props) => {
     style,
     onAdd,
   } = props;
+
+  const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
+  const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
+
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [image, setImage] = useState(null);
   const [isLimitedSupply, setIsLimitedSupply] = useState(true);
   const [tokenName, setTokenName] = useState(null);
   const [tokenTicker, setTokenTicker] = useState(null);
-  const [contractString, setContractString] = useState(null);
-  const [price, setPrice] = useState(null);
+  const [decimals, setDecimals] = useState(null);
+  const [initialSupply, setInitialSupply] = useState(null);
+  const [maximumSupply, setMaximumSupply] = useState(null);
+  const [isMintable, setIsMintable] = useState(false);
+  const [authorizedMinter, setAuthorizedMinter] = useState(null);
+  const [apiresponse, setApiresponse] = useState('');
   const updateFromState = () => {
-    setPrice(null);
+    setAuthorizedMinter(null);
+    setIsMintable(null);
     setTokenName(null);
     setTokenTicker(null);
     setImage(null);
     setImageUrl(null);
-    setContractString(null);
+    setDecimals(null);
     setIsLimitedSupply(true);
   };
   const handleOk = () => {
@@ -64,6 +87,7 @@ const CreateToken = (props) => {
     }
     changeVisibility(false);
     updateFromState();
+    setApiresponse('');
   };
 
   const handleChange = (info) => {
@@ -83,40 +107,182 @@ const CreateToken = (props) => {
 
   const onSubmit = async () => {
     try {
-      if (tokenName && tokenTicker && contractString && price && imageUrl) {
-        const ercDb = Datastore.create({
-          filename: `${remote.app.getPath('userData')}/ERC.db`,
+      if (isLimitedSupply && maximumSupply < initialSupply) {
+        message.error('Maximum supply cannot be smaller than initial supply.');
+        return;
+      }
+      if (isMintable && !authorizedMinter) {
+        message.error('Please provide an authorized minter.');
+        return;
+      }
+      if (tokenName && tokenTicker && decimals && initialSupply) {
+        const db = Datastore.create({
+          filename: `${remote.app.getPath('userData')}/wallets.db`,
           timestampData: true,
         });
-        const imageName = `${remote.app.getPath('userData')}/${image.uid}.${
-          image.name.split('.')[1]
-        }`;
-        fs.writeFileSync(
-          imageName,
-          imageUrl.replace(/^data:image\/(jpeg|png);base64,/, ''),
-          'base64'
+        const wallet = await db.findOne({ _id: selectedWallet?._id });
+        let defaultAuthorizedMinter =
+          'account-hash-0000000000000000000000000000000000000000000000000000000000000000';
+        if (isMintable) {
+          defaultAuthorizedMinter = authorizedMinter;
+        }
+        const response = await createToken(
+          wallet?.privateKeyUint8,
+          'casper-test',
+          tokenName,
+          tokenTicker,
+          imageUrl,
+          decimals,
+          initialSupply,
+          defaultAuthorizedMinter
         );
-        const transaction = {
-          image: imageName,
-          name: tokenName,
-          ticker: tokenTicker,
-          timestamp: new Date(),
-          contractString,
-          price,
-          isLimitedSupply,
-        };
-        const newRecord = await ercDb.insert(transaction);
-        onAdd(newRecord);
-        updateFromState();
-        handleCancel();
+        setApiresponse(response.data);
+
+        // const ercDb = Datastore.create({
+        //   filename: `${remote.app.getPath('userData')}/ERC.db`,
+        //   timestampData: true,
+        // });
+        // const imageName = `${remote.app.getPath('userData')}/${image.uid}.${
+        //   image.name.split('.')[1]
+        // }`;
+        // fs.writeFileSync(
+        //   imageName,
+        //   imageUrl.replace(/^data:image\/(jpeg|png);base64,/, ''),
+        //   'base64'
+        // );
+        // const transaction = {
+        //   image: imageName,
+        //   name: tokenName,
+        //   ticker: tokenTicker,
+        //   timestamp: new Date(),
+        //   decimals,
+        //   initialSupply,
+        //   isLimitedSupply,
+        // };
+        // const newRecord = await ercDb.insert(transaction);
+        // onAdd(newRecord);
+        // updateFromState();
+        // handleCancel();
       } else {
-        message.error('please fill all the form');
+        message.error('Please verify form values.');
       }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error on Submit new ERC Token : ', error);
     }
   };
+
+  const openNotification = () => {
+    notification.success({
+      message: 'Copied',
+      description: 'Text has been copied to clipboard.',
+      duration: 3,
+      className: 'custom-notification',
+      onClick: () => {},
+    });
+  };
+
+  const afterDeploy = (
+    <>
+      <div className="modal-subtitle">Your transaction information</div>
+      <div>
+        {!apiresponse?.toUpperCase().startsWith('ERROR') && (
+          <span className="modal-description">Deploy hash</span>
+        )}
+
+        <TextArea
+          type="text"
+          className="modal-input-amount"
+          style={{ padding: '13px' }}
+          value={apiresponse}
+          disabled
+        />
+        <div>
+          <Button
+            onClick={async () => {
+              await navigator.clipboard.writeText(apiresponse);
+              openNotification();
+            }}
+            className="send-button-no-mt"
+            style={{ margin: 'auto', display: 'block' }}
+          >
+            {/* {path.join(__dirname,'../src/casperService.js')} */}
+            Copy
+          </Button>
+        </div>
+        {!apiresponse.toUpperCase().startsWith('ERROR') && (
+          <>
+            <span className="modal-description">
+              Explorer link{' '}
+              <span style={{ fontSize: 11, color: '#9c9393' }}>
+                (After inclusion in a new block, you can review the{' '}
+                <span
+                  role="link"
+                  onClick={() => {
+                    const url =
+                      selectedNetwork === 'casper-test'
+                        ? `https://testnet.cspr.live/deploy/${apiresponse}`
+                        : `https://cspr.live/deploy/${apiresponse}`;
+                    window.open(url, '_blank');
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    color: 'blue',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Deploy Details
+                </span>
+                )
+              </span>
+            </span>
+            <TextArea
+              type="text"
+              className="modal-input-amount"
+              style={{ padding: '13px', cursor: 'pointer' }}
+              value={
+                selectedNetwork === 'casper-test'
+                  ? `https://testnet.cspr.live/deploy/${apiresponse}`
+                  : `https://cspr.live/deploy/${apiresponse}`
+              }
+              disabled
+            />
+            <div style={{ display: 'flex' }}>
+              <Button
+                onClick={async () => {
+                  const url =
+                    selectedNetwork === 'casper-test'
+                      ? `https://testnet.cspr.live/deploy/${apiresponse}`
+                      : `https://cspr.live/deploy/${apiresponse}`;
+                  await navigator.clipboard.writeText(url);
+                  openNotification();
+                }}
+                className="send-button-no-mt"
+                style={{ margin: 'auto', display: 'block' }}
+              >
+                {/* {path.join(__dirname,'../src/casperService.js')} */}
+                Copy
+              </Button>
+              <Button
+                onClick={() => {
+                  const url =
+                    selectedNetwork === 'casper-test'
+                      ? `https://testnet.cspr.live/deploy/${apiresponse}`
+                      : `https://cspr.live/deploy/${apiresponse}`;
+                  window.open(url, '_blank');
+                }}
+                className="send-button-no-mt"
+                style={{ margin: 'auto', display: 'block' }}
+              >
+                {/* {path.join(__dirname,'../src/casperService.js')} */}
+                Open in browser
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -131,113 +297,144 @@ const CreateToken = (props) => {
       >
         <div>
           <div className="modal-title">Create a Token</div>
-          <div className="modal-content">
-            <Row>
-              <Col span={8} />
-              <Col span={8} justify="space-around" align="middle">
-                <Upload
-                  name="avatar"
-                  listType="picture-card"
-                  className="avatar-uploader"
-                  showUploadList={false}
-                  // action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                  beforeUpload={beforeUpload}
-                  onChange={handleChange}
-                >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt="avatar"
-                      style={{ width: '100%' }}
-                    />
-                  ) : (
-                    uploadButton
-                  )}
-                </Upload>
-              </Col>
-              <Col span={8} />
-            </Row>
-            <Input
-              type="text"
-              className="modal-input-amount"
-              placeholder="Token Name"
-              value={tokenName}
-              onChange={(e) => {
-                setTokenName(e.target.value);
-              }}
-            />
-            <Input
-              type="text"
-              className="modal-input-amount"
-              placeholder="Token ticker"
-              value={tokenTicker}
-              onChange={(e) => {
-                setTokenTicker(e.target.value);
-              }}
-            />
-            <Input
-              type="text"
-              className="modal-input-amount"
-              placeholder="Contract ticker"
-              value={contractString}
-              onChange={(e) => {
-                setContractString(e.target.value);
-              }}
-            />
-            <Input
-              type="number"
-              className="modal-input-amount"
-              placeholder="price"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value);
-              }}
-            />
-            <div>
-              <Row gutter={12}>
-                <Col span={12}>{'Limited Suply '}</Col>
-                <Switch
-                  checked={isLimitedSupply}
-                  onChange={() => {
-                    setIsLimitedSupply(!isLimitedSupply);
-                  }}
-                />
-                <Col span={6} />
-              </Row>
-              <Row gutter={12}>
-                <Col span={12}>{'Maintable Suply '}</Col>
-                <Switch
-                  checked={!isLimitedSupply}
-                  onChange={() => {
-                    setIsLimitedSupply(!isLimitedSupply);
-                  }}
-                />
-                <Col span={6} />
-              </Row>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <Row gutter={12}>
-                  <Col span={12}>
-                    <Button
-                      type="primary"
-                      onClick={onSubmit}
-                      className="send-button"
+          {apiresponse !== '' && <>{afterDeploy}</>}
+          {apiresponse === '' && (
+            <>
+              <div className="modal-content">
+                <Row>
+                  <Col span={8} />
+                  <Col span={8} justify="space-around" align="middle">
+                    <Upload
+                      name="avatar"
+                      listType="picture-card"
+                      className="avatar-uploader"
+                      showUploadList={false}
+                      // action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                      beforeUpload={beforeUpload}
+                      onChange={handleChange}
                     >
-                      Submit
-                    </Button>
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="avatar"
+                          style={{ width: '100%' }}
+                        />
+                      ) : (
+                        uploadButton
+                      )}
+                    </Upload>
                   </Col>
-                  <Col span={12}>
-                    <Button
-                      type="primary"
-                      onClick={handleCancel}
-                      className="cancel-button"
-                    >
-                      Cancel
-                    </Button>
-                  </Col>
+                  <Col span={8} />
                 </Row>
+                <Input
+                  type="text"
+                  className="modal-input-amount"
+                  placeholder="Token name"
+                  value={tokenName}
+                  onChange={(e) => {
+                    setTokenName(e.target.value);
+                  }}
+                />
+                <Input
+                  type="text"
+                  className="modal-input-amount"
+                  placeholder="Token ticker"
+                  value={tokenTicker}
+                  onChange={(e) => {
+                    setTokenTicker(e.target.value);
+                  }}
+                />
+                <Input
+                  type="number"
+                  className="modal-input-amount"
+                  placeholder="Decimals"
+                  value={decimals}
+                  onChange={(e) => {
+                    setDecimals(e.target.value);
+                  }}
+                />
+
+                <Input
+                  type="number"
+                  className="modal-input-amount"
+                  placeholder="Initial Supply"
+                  value={initialSupply}
+                  onChange={(e) => {
+                    setInitialSupply(e.target.value);
+                  }}
+                />
+                <div>
+                  <Row gutter={12}>
+                    <Col span={12}>{'Limited Supply '}</Col>
+                    <Switch
+                      checked={isLimitedSupply}
+                      onChange={() => {
+                        setIsLimitedSupply(!isLimitedSupply);
+                      }}
+                    />
+                    <Col span={6} />
+
+                    <Input
+                      type="number"
+                      className="modal-input-amount"
+                      placeholder="Maximum Supply"
+                      value={maximumSupply}
+                      hidden={!isLimitedSupply}
+                      onChange={(e) => {
+                        setMaximumSupply(e.target.value);
+                      }}
+                    />
+                  </Row>
+
+                  <Row gutter={12}>
+                    <Col span={12}>{'Mintable '}</Col>
+                    <Switch
+                      checked={isMintable}
+                      onChange={() => {
+                        setIsMintable(!isMintable);
+                      }}
+                    />
+                    <Col span={6} />
+                    <Input
+                      type="text"
+                      className="modal-input-amount"
+                      placeholder="Authorized Minter"
+                      value={authorizedMinter}
+                      hidden={!isMintable}
+                      onChange={(e) => {
+                        setAuthorizedMinter(e.target.value);
+                      }}
+                    />
+                    <p style={{ marginTop: '2rem' }}>
+                      The network fee for this transaction is 90 CSPR.
+                    </p>
+                  </Row>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Row gutter={12}>
+                      <Col span={12}>
+                        <Button
+                          type="primary"
+                          onClick={onSubmit}
+                          className="send-button"
+                        >
+                          Submit
+                        </Button>
+                      </Col>
+                      <Col span={12}>
+                        <Button
+                          type="primary"
+                          onClick={handleCancel}
+                          className="cancel-button"
+                        >
+                          Cancel
+                        </Button>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </Modal>
     </>
