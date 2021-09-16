@@ -13,6 +13,7 @@ const ERCTable = (props) => {
       dataIndex: 'photo',
       key: 'photo',
       responsive: ['sm'],
+      width: 100,
       render: (text, record, index) => (
         <Avatar size="small" src={<Image src={record.image} />} />
       ),
@@ -22,30 +23,35 @@ const ERCTable = (props) => {
       dataIndex: 'name',
       responsive: ['sm'],
       key: 'name',
+      width: 150,
     },
     {
       title: 'ticker',
       dataIndex: 'ticker',
       key: 'ticker',
       responsive: ['md'],
+      width: 150,
     },
     {
       title: 'amount',
       dataIndex: 'amount',
       key: 'amount',
       responsive: ['md'],
+      width: 150,
     },
     {
       title: 'amount %',
       dataIndex: 'amount',
       key: 'amount',
       responsive: ['md'],
+      width: 150,
     },
     {
       title: 'is Limited Supply',
       dataIndex: 'isLimitedSupply',
       key: 'isLimitedSupply',
       responsive: ['sm'],
+      width: 100,
       render: (text, record, index) => (
         <Switch checked={record.isLimitedSupply} size="small" />
       ),
