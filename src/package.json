@@ -1,7 +1,7 @@
 {
   "name": "gosuto-wallet",
   "productName": "Gosuto Wallet",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Gosuto wallet for Casper Network",
   "main": "./main.prod.js",
   "author": {
