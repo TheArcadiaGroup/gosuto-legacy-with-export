@@ -9,7 +9,8 @@
     "rebuild": "electron-builder install-app-deps",
     "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "package": "rm -rf src/dist && rm -rf src/release && yarn build:main && yarn build:renderer && electron-builder -mwl --publish onTagOrDraft",
-    "package:never": "del -rf src\\dist && del -rf src\\release && yarn build && electron-builder -m --publish never",
+    "package:never": "rm -rf src/dist && rm -rf src/release && yarn build && electron-builder -m --publish never",
+    "package:never:windows": "del  src\\dist && del  src\\release && yarn build && electron-builder -w --publish never",
     "postinstall": "electron-builder install-app-deps && yarn cross-env NODE_ENV=development webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.babel.js && opencollective-postinstall && yarn-deduplicate yarn.lock",
     "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
@@ -74,13 +75,11 @@
       ]
     },
     "win": {
-      "icon": "./assets/gosuto-logo.icns",
       "target": [
         "nsis"
       ]
     },
     "linux": {
-      "icon": "./assets/gosuto-logo.icns",
       "target": [
         "AppImage"
       ],

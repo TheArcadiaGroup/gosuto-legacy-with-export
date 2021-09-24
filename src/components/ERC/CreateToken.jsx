@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 import React, { useState, useContext } from 'react';
@@ -13,14 +14,17 @@ import {
   Button,
   notification,
 } from 'antd';
+import TextArea from 'rc-textarea';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import fs from 'fs';
+import mongoose from 'mongoose';
 import { remote } from 'electron';
 import Datastore from 'nedb-promises';
 import { createToken } from '../../services/casper';
 import NetworkContext from '../../contexts/NetworkContext';
 import WalletContext from '../../contexts/WalletContext';
-import TextArea from 'rc-textarea';
+import DataContext from '../../contexts/DataContext';
+import { getERCTokensModel } from '../../services/mongoDb';
 
 const CreateToken = (props) => {
   const {
@@ -35,7 +39,7 @@ const CreateToken = (props) => {
 
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
-
+  const [data, setData] = useContext(DataContext);
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [image, setImage] = useState(null);
@@ -120,6 +124,14 @@ const CreateToken = (props) => {
           filename: `${remote.app.getPath('userData')}/wallets.db`,
           timestampData: true,
         });
+        const imageName = `${remote.app.getPath('userData')}/${image.uid}.${
+          image.name.split('.')[1]
+        }`;
+        fs.writeFileSync(
+          imageName,
+          imageUrl.replace(/^data:image\/(jpeg|png);base64,/, ''),
+          'base64'
+        );
         const wallet = await db.findOne({ _id: selectedWallet?._id });
         let defaultAuthorizedMinter =
           'account-hash-0000000000000000000000000000000000000000000000000000000000000000';
@@ -131,35 +143,59 @@ const CreateToken = (props) => {
           selectedNetwork,
           tokenName,
           tokenTicker,
-          imageUrl,
+          imageName,
           decimals,
           initialSupply,
           defaultAuthorizedMinter
         );
         setApiresponse(response.data);
-
-        // const ercDb = Datastore.create({
-        //   filename: `${remote.app.getPath('userData')}/ERC.db`,
-        //   timestampData: true,
-        // });
-        // const imageName = `${remote.app.getPath('userData')}/${image.uid}.${
-        //   image.name.split('.')[1]
-        // }`;
-        // fs.writeFileSync(
-        //   imageName,
-        //   imageUrl.replace(/^data:image\/(jpeg|png);base64,/, ''),
-        //   'base64'
-        // );
-        // const transaction = {
-        //   image: imageName,
-        //   name: tokenName,
-        //   ticker: tokenTicker,
-        //   timestamp: new Date(),
-        //   decimals,
-        //   initialSupply,
-        //   isLimitedSupply,
-        // };
-        // const newRecord = await ercDb.insert(transaction);
+        if (
+          response.status === 200 &&
+          !response.data?.toUpperCase().includes('ERROR')
+        ) {
+          if (mongoose.connection.readyState !== 1) {
+            getERCTokensModel();
+          }
+          const ERCTOKEN = mongoose.model('ERCTokens');
+          const ercToken = new ERCTOKEN();
+          ercToken.selectedNetwork = selectedNetwork;
+          ercToken.tokenName = tokenName;
+          ercToken.tokenTicker = tokenTicker;
+          ercToken.image = imageUrl;
+          ercToken.decimals = decimals;
+          ercToken.initialSupply = initialSupply;
+          ercToken.defaultAuthorizedMinter = defaultAuthorizedMinter;
+          ercToken.deployHash = response.data;
+          ercToken.activePublicKey = wallet?.accountHex;
+          await ercToken.save(async (err, doc) => {
+            if (err) console.error(err);
+            if (!err) {
+              const erc = await ERCTOKEN.findById(`${doc._id}`).lean().exec();
+              onAdd(erc);
+            }
+          });
+          const transaction = {
+            amount: 0,
+            deployHash: response?.data,
+            fromAccount: wallet?.accountHex,
+            timestamp: new Date(),
+            toAccount: null,
+            transferId: '',
+            method: 'Pending',
+            wallet: selectedWallet.accountHex,
+            network: selectedNetwork,
+          };
+          const pendingHistoryDB = Datastore.create({
+            filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+            timestampData: true,
+          });
+          await pendingHistoryDB.insert(transaction);
+          setData({
+            ...data,
+            pendingHistory: [...data.pendingHistory, transaction],
+            shouldUpdateHistory: true,
+          });
+        }
         // onAdd(newRecord);
         // updateFromState();
         // handleCancel();
@@ -186,7 +222,7 @@ const CreateToken = (props) => {
     <>
       <div className="modal-subtitle">Your transaction information</div>
       <div>
-        {!apiresponse?.toUpperCase().startsWith('ERROR') && (
+        {!apiresponse?.toUpperCase().includes('ERROR') && (
           <span className="modal-description">Deploy hash</span>
         )}
 
@@ -210,7 +246,7 @@ const CreateToken = (props) => {
             Copy
           </Button>
         </div>
-        {!apiresponse?.toUpperCase().startsWith('ERROR') && (
+        {!apiresponse?.toUpperCase().includes('ERROR') && (
           <>
             <span className="modal-description">
               Explorer link{' '}

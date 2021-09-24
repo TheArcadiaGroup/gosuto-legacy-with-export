@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Row, Input, Col, Spin, Tag, Card } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { remote } from 'electron';
+import mongoose from 'mongoose';
 import Datastore from 'nedb-promises';
 import ERCTable from '../components/ERC/ERCTable';
 import CreateToken from '../components/ERC/CreateToken';
+import { getERCTokensModel } from '../services/mongoDb';
 // styles
 import '../App.global.scss';
 
@@ -37,11 +39,11 @@ const ERCView = () => {
   useEffect(() => {
     async function loadTokens() {
       setPageLoading(true);
-      const ercDb = Datastore.create({
-        filename: `${remote.app.getPath('userData')}/ERC.db`,
-        timestampData: true,
-      });
-      const tokensDb = await ercDb.find({});
+      if (mongoose.connection.readyState !== 1) {
+        await getERCTokensModel();
+      }
+      const ERCTOKEN = mongoose.model('ERCTokens');
+      const tokensDb = await ERCTOKEN.find({}).lean().exec();
       setTokens(tokensDb);
       setPageLoading(false);
     }
@@ -67,8 +69,9 @@ const ERCView = () => {
             setIsModelShowen(false);
           }}
           onAdd={(record) => {
-            tokens.push(record);
-            setTokens(tokens);
+            const newList = tokens.concat(record);
+            // tokens.push(record);
+            setTokens(newList);
           }}
         />
         <Row gutter={12} justify="space-between" align="middle">

@@ -1,5 +1,9 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable react/no-array-index-key */
+/* eslint-disable no-console */
 import React, { useContext, useEffect, useState } from 'react';
 import { Tag, Spin, Empty } from 'antd';
+import axios from 'axios';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import HistoryCard from '../components/HistoryCard';
@@ -48,8 +52,8 @@ const HistoryView = () => {
       pendingHistory = await pendingHistoryDB.find({});
       console.log('pending history after database = ', pendingHistory);
       let newPending = [];
-      for (let index = 0; index < pendingHistory.length; index++) {
-        const pendingOperation = pendingHistory[index];
+      pendingHistory.forEach(async (element) => {
+        const pendingOperation = element;
         if (
           JSON.stringify(fetchedHistory)?.indexOf(
             pendingOperation?.deployHash
@@ -72,15 +76,14 @@ const HistoryView = () => {
           const diffMins = Math.floor(diffMs / 1000 / 60); // minutes
           console.log('pendingOperation = ', pendingOperation);
           if (diffMins > 3 && pendingOperation.method !== 'Failed') {
-            var axios = require('axios');
-            var requestData = JSON.stringify({
+            const requestData = JSON.stringify({
               jsonrpc: '2.0',
               method: 'info_get_deploy',
               params: [pendingOperation.deployHash],
               id: 1,
             });
 
-            var config = {
+            const config = {
               method: 'post',
               url: getEndpointByNetwork(setSelectedNetwork),
               headers: {
@@ -109,12 +112,12 @@ const HistoryView = () => {
               );
             }
             newPending.push(pendingOperation);
-            console.log('newPending AFTER = ', newPending);
           } else {
             newPending.push(pendingOperation);
           }
         }
-      }
+      });
+      // for (let index = 0; index < pendingHistory.length; index++) {}
 
       newPending = newPending.reverse();
       console.log('pending history after filter = ', newPending);
@@ -154,6 +157,7 @@ const HistoryView = () => {
               historyLastUpdate: new Date(),
               shouldUpdateHistory: false,
             });
+            return 0;
           })
           .catch((error) => {
             setHistory([]);
@@ -193,7 +197,7 @@ const HistoryView = () => {
       )} */}
       {filters.map((filter, index) => (
         <Tag
-          key={index}
+          key={`filters_${index}`}
           className={filter === selectedTag ? 'selected-tag' : 'unselected-tag'}
           color="processing"
           onClick={() => handleTagClick(filter)}
