@@ -559,6 +559,8 @@ const WalletView = () => {
         }
         // setDefaultWallet(dw);
         setDefaultWallet({ ...dw, balance, amount });
+      } else {
+        console.log('No default Wallet');
       }
     }
     getDefaultWallet(true);

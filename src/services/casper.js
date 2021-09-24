@@ -81,8 +81,7 @@ export const getTotalStakedSum = async (publicKeys, network) => {
       try {
         const element = publicKeys[index];
         sum += (await getUserDelegatedAmount(element)).stakedAmount;
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     return sum;
   } catch (error) {}
@@ -385,7 +384,7 @@ export const createToken = async (
       10
     );
     console.log('GOT REQUEST');
-    return await axios.post(`http://localhost:${port}/token/create`, {
+    const res = await axios.post(`http://localhost:${port}/token/create`, {
       privateKey,
       network,
       tokenName,
@@ -395,6 +394,8 @@ export const createToken = async (
       initialSupply,
       authorizedMinter,
     });
+    console.log('GOT Response : ', res);
+    return res;
   } catch (error) {
     return new Promise((resolve) => {
       resolve({ stdout: 'nope', stderr: error });

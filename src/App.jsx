@@ -24,7 +24,7 @@ import WalletView from './Views/WalletView';
 import ERCView from './Views/ERCView';
 import HistoryView from './Views/HistoryView';
 import StakingView from './Views/StakingView';
-//import SwapView from './Views/SwapView';
+// import SwapView from './Views/SwapView';
 
 // logo
 import logo from '../assets/icons/gosuto-logo.png';
@@ -102,7 +102,7 @@ function App() {
   const [walletsData, setWalletsData] = useState([]);
 
   const [text, setText] = useState('');
-  const [deepLinkRet, setDeepLinkRet] = useState('');
+  const [selectedMenu, setSelectedMenu] = useState(['1']);
   const [signatureRequestData, setSignatureRequestData] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const getLatestBlockInfo = async () => {
@@ -263,7 +263,15 @@ function App() {
             <Layout className="layout">
               <Header className="site-header">
                 <div className="link-holder">
-                  <Link to="/" className="logo-header-holder">
+                  <Link
+                    to="/"
+                    className="logo-header-holder"
+                    replace
+                    onClick={() => {
+                      console.log(selectedMenu);
+                      setSelectedMenu(['1']);
+                    }}
+                  >
                     <img src={logo} alt="Logo" className="logo-header" />
                   </Link>
                 </div>
@@ -321,6 +329,7 @@ function App() {
                     theme="dark"
                     mode="vertical-left"
                     defaultSelectedKeys={['1']}
+                    selectedKeys={selectedMenu}
                     style={{
                       width: '90%',
                       marginLeft: '12px',
@@ -328,19 +337,59 @@ function App() {
                     }}
                   >
                     <Menu.Item key="1" icon={<DashboardOutlined />}>
-                      <Link to="/">Dashboard</Link>
+                      <Link
+                        to="/"
+                        replace
+                        onClick={() => {
+                          setSelectedMenu(['1']);
+                        }}
+                      >
+                        Dashboard
+                      </Link>
                     </Menu.Item>
                     <Menu.Item key="2" icon={<WalletOutlined />}>
-                      <Link to="/wallet">Wallet</Link>
+                      <Link
+                        to="/wallet"
+                        replace
+                        onClick={() => {
+                          setSelectedMenu(['2']);
+                        }}
+                      >
+                        Wallet
+                      </Link>
                     </Menu.Item>
                     <Menu.Item key="3" icon={<HistoryOutlined />}>
-                      <Link to="/history">History</Link>
+                      <Link
+                        to="/history"
+                        replace
+                        onClick={() => {
+                          setSelectedMenu(['3']);
+                        }}
+                      >
+                        History
+                      </Link>
                     </Menu.Item>
                     <Menu.Item key="4" icon={<AreaChartOutlined />}>
-                      <Link to="/staking">Staking</Link>
+                      <Link
+                        to="/staking"
+                        replace
+                        onClick={() => {
+                          setSelectedMenu(['4']);
+                        }}
+                      >
+                        Staking
+                      </Link>
                     </Menu.Item>
                     <Menu.Item key="5" icon={<SwapOutlined />}>
-                      <Link to="/erc">ERC20</Link>
+                      <Link
+                        to="/erc"
+                        replace
+                        onClick={() => {
+                          setSelectedMenu(['5']);
+                        }}
+                      >
+                        ERC20
+                      </Link>
                     </Menu.Item>
                     {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
