@@ -394,6 +394,7 @@ const StakingView = () => {
           timestamp: new Date(),
           toAccount: validatorPublicKey,
           transferId: '',
+          type: 'delegate',
           method: 'Pending',
           wallet: selectedWallet.accountHex,
           network: selectedNetwork,

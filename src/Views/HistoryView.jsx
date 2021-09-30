@@ -226,6 +226,7 @@ const HistoryView = () => {
             from={card.fromAccount}
             to={card.toAccount}
             method={card.method}
+            type={card.type}
             lost={
               card.fromAccount === selectedWallet?.accountHash ||
               card.fromAccount === selectedWallet?.accountHex

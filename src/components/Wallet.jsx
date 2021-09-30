@@ -434,6 +434,7 @@ const Wallet = ({
         timestamp: new Date(),
         toAccount: recipient,
         transferId: newNote,
+        type: 'transfer',
         method: 'Pending',
         network: selectedNetwork,
         wallet: selectedWallet.accountHex,

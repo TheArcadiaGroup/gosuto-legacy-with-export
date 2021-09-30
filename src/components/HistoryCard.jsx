@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Card, Col, Row } from 'antd';
@@ -16,6 +17,7 @@ const HistoryCard = ({
   to,
   from,
   selectedNetwork,
+  type,
 }) => {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   return (
@@ -33,7 +35,12 @@ const HistoryCard = ({
                   lost ? 'history-card-amount-lose' : 'history-card-amount'
                 }
               >
-                {lost ? '-' : '+'} {amount} {lost ? `to ${to}` : `from ${from}`}
+                {lost ? '-' : '+'} {amount}{' '}
+                {type === 'createERCToken'
+                  ? 'for Creating ERC Token'
+                  : lost
+                  ? `to ${to}`
+                  : `from ${from}`}
               </div>
               {/* {<div className="history-card-note">Pending</div>} */}
             </div>

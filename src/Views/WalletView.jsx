@@ -77,6 +77,7 @@ const WalletView = () => {
             className="modal-input-amount"
             placeholder="Wallet Name"
             onChange={onWalletNameChange}
+            maxLength={30}
           />
         </div>
         <div className="modal-description">
@@ -435,6 +436,7 @@ const WalletView = () => {
           placeholder="Wallet Name"
           className="modal-input-amount"
           onChange={onWalletNameChange}
+          maxLength={30}
         />
         <Button
           style={{ width: '100%' }}
@@ -519,6 +521,7 @@ const WalletView = () => {
           value={walletName}
           className="modal-input-amount"
           onChange={onWalletNameChange}
+          maxLength={30}
         />
         <TextArea
           className="modal-input-amount"

@@ -52,6 +52,7 @@ const CreateToken = (props) => {
   const [isMintable, setIsMintable] = useState(false);
   const [authorizedMinter, setAuthorizedMinter] = useState(null);
   const [apiresponse, setApiresponse] = useState('');
+
   const updateFromState = () => {
     setAuthorizedMinter(null);
     setIsMintable(null);
@@ -175,12 +176,13 @@ const CreateToken = (props) => {
             }
           });
           const transaction = {
-            amount: 0,
+            amount: 90 * 1e9,
             deployHash: response?.data,
             fromAccount: wallet?.accountHex,
             timestamp: new Date(),
             toAccount: null,
             transferId: '',
+            type: 'createERCToken',
             method: 'Pending',
             wallet: selectedWallet.accountHex,
             network: selectedNetwork,
@@ -434,6 +436,7 @@ const CreateToken = (props) => {
                           type="primary"
                           onClick={onSubmit}
                           className="send-button"
+                          disabled={!selectedWallet}
                         >
                           Submit
                         </Button>
