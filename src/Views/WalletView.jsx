@@ -1,3 +1,5 @@
+/* eslint-disable react/no-array-index-key */
+/* eslint-disable no-underscore-dangle */
 import React, { useContext, useEffect, useState } from 'react';
 import { Tag, Button, Input, Row, Col, notification, Spin } from 'antd';
 
@@ -40,7 +42,7 @@ const WalletView = () => {
   const [accountHex, setAccountHex] = useState('');
   const [privateKey, setPrivateKey] = useState('');
   const [accountHash, setAccountHash] = useState('');
-  // const [mnemonicSeed, setMnemonicSeed] = useState('');
+  const [seedError, setSeedError] = useState(null);
   const [walletName, setWalletName] = useState('');
   const [fileContents, setFileContents] = useState('');
   const [publicKeyUint8, setPublicKeyUint8] = useState('');
@@ -456,37 +458,10 @@ const WalletView = () => {
       </div>
     );
   };
-  const importFromSeedContent = () => {
-    return (
-      <div>
-        <div className="modal-vault-logo">
-          <img src={vault} alt="vault" className="image-modal" />
-        </div>
-        <div className="modal-title">Import from seed</div>
-        <Input
-          type="text"
-          placeholder="Wallet Name"
-          value={walletName}
-          className="modal-input-amount"
-          onChange={onWalletNameChange}
-        />
-        <TextArea
-          className="modal-input-amount"
-          placeholder="Your seed"
-          onChange={(e) => {
-            setSeedToImportFrom(e.target.value);
-          }}
-          value={seedToImportFrom}
-        />
-        {importFromSeedFooter()}
-      </div>
-    );
-  };
-
   const onImportFromSeed = async () => {
     try {
       const { accHex, accHash, privateKey, publicKeyUint8, privateKeyUint8 } =
-        await generateWallet(seedToImportFrom);
+        await generateWallet(seedToImportFrom.trim());
       let newWallet = await db.insert({
         walletName:
           walletName === ''
@@ -519,18 +494,56 @@ const WalletView = () => {
       });
     }
   };
-
   const importFromSeedFooter = () => {
     return (
       <Button
         onClick={onImportFromSeed}
         className="send-button-no-mt"
         style={{ margin: 'auto', display: 'block' }}
+        disabled={seedError}
       >
         Import
       </Button>
     );
   };
+  const importFromSeedContent = () => {
+    return (
+      <div>
+        <div className="modal-vault-logo">
+          <img src={vault} alt="vault" className="image-modal" />
+        </div>
+        <div className="modal-title">Import from seed</div>
+        <Input
+          type="text"
+          placeholder="Wallet Name"
+          value={walletName}
+          className="modal-input-amount"
+          onChange={onWalletNameChange}
+        />
+        <TextArea
+          className="modal-input-amount"
+          placeholder="Your seed"
+          onChange={(e) => {
+            const { value } = e.target;
+            const cleanValue = value.replace(/\s+/g, ' ');
+            setSeedToImportFrom(cleanValue);
+            if (
+              cleanValue.trim().split(' ').length < 12 ||
+              cleanValue.trim().split(' ').length > 12
+            ) {
+              setSeedError('Seed has to contain 12 words exactly');
+            } else {
+              setSeedError(null);
+            }
+          }}
+          value={seedToImportFrom}
+        />
+        {seedError && <p style={{ color: 'red' }}>⚠ {seedError}</p>}
+        {importFromSeedFooter()}
+      </div>
+    );
+  };
+
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
 
   useEffect(() => {
@@ -576,7 +589,7 @@ const WalletView = () => {
       if (localStorage.getItem('defaultWallet')) {
         const dw = JSON.parse(localStorage.getItem('defaultWallet'));
         filtredWallets = walletsDb.filter((wallet) => {
-          return wallet._id != dw._id;
+          return wallet._id !== dw._id;
         });
       } else {
         filtredWallets = walletsDb;
@@ -585,31 +598,42 @@ const WalletView = () => {
       const csprPrice = 1; // (await getCasperMarketInformation())?.price;
       setCasperPrice(csprPrice);
       const latestBlockHash = await getLatestBlockInfo();
-      await Promise.all(
-        filtredWallets &&
-          filtredWallets.length > 0 &&
-          filtredWallets.map(async (wallet, index) => {
-            let balance;
-            let amount = '';
-            try {
-              balance = withGetBalances
-                ? await getAccountBalance(
-                    wallet.accountHex,
-                    latestBlockHash.block.hash,
-                    selectedNetwork
-                  )
-                : 0;
-              amount = balance * csprPrice;
-              // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
-              // stakedAmount = stakedAmount.stakedAmount
-              //  stakedValue = csprPrice*stakedAmount
-            } catch (error) {
-              console.log('error = ', error);
-              balance = 'Inactive account.';
-            }
-            filtredWallets[index] = { ...wallet, balance, amount };
-          })
-      );
+      console.log(filtredWallets);
+      console.log(filtredWallets && filtredWallets.length > 0);
+      if (filtredWallets && filtredWallets.length > 0) {
+        await Promise.all(
+          filtredWallets &&
+            filtredWallets.length > 0 &&
+            filtredWallets.map(async (wallet, index) => {
+              let balance;
+              let amount = '';
+              try {
+                balance = withGetBalances
+                  ? await getAccountBalance(
+                      wallet.accountHex,
+                      latestBlockHash.block.hash,
+                      selectedNetwork
+                    )
+                  : 0;
+                amount = balance * csprPrice;
+                // stakedAmount = await getUserDelegatedAmount(wallet.accountHex)
+                // stakedAmount = stakedAmount.stakedAmount
+                //  stakedValue = csprPrice*stakedAmount
+              } catch (error) {
+                console.log('error = ', error);
+                balance = 'Inactive account.';
+              }
+              filtredWallets[index] = { ...wallet, balance, amount };
+            })
+        );
+        if (!defaultWallet) {
+          localStorage.setItem(
+            'defaultWallet',
+            JSON.stringify(filtredWallets[0])
+          );
+          setDefaultWallet(filtredWallets[0]);
+        }
+      }
       setWallets(filtredWallets);
       setData({
         ...data,
@@ -667,9 +691,11 @@ const WalletView = () => {
               setIsModalVisible={setIsImportFromSeedModalVisible}
               title="Import From Seed"
               // customOnCancelLogic={customOnCancelLogic}
-              children={importFromSeedContent()}
+
               footer={[importFromSeedFooter()]}
-            />
+            >
+              {importFromSeedContent()}
+            </AddWallet>
           </Col>
           <Col span={7}>
             <AddWallet
@@ -677,9 +703,11 @@ const WalletView = () => {
               setIsModalVisible={setIsImportFromFileModalVisible}
               title="Import From File"
               // customOnCancelLogic={customOnCancelLogic}
-              children={importFromFileContent()}
+
               footer={[importFromFileFooter()]}
-            />
+            >
+              {importFromFileContent()}
+            </AddWallet>
           </Col>
         </Row>
         {(pageLoading || data.shouldUpdateWallets) && (
@@ -689,9 +717,9 @@ const WalletView = () => {
             />
           </>
         )}
-        <Row gutter={48} justify="start" align="middle">
+        <Row gutter={[16, 16]} justify="start" align="middle">
           {defaultWallet && (
-            <Col span={8} key="Col_wallet">
+            <Col xs={24} xl={8} key="Col_wallet">
               <Wallet
                 key="defaultWallet"
                 casperPrice={casperPrice}
@@ -722,8 +750,8 @@ const WalletView = () => {
           {wallets?.length > 0 &&
             wallets?.map((wallet, i) => (
               <>
-                {selectedWallet._id != wallet._id && (
-                  <Col span={8} key={i}>
+                {selectedWallet && selectedWallet._id !== wallet._id && (
+                  <Col xs={24} xl={8} key={i}>
                     <Wallet
                       key={`wallet_${i}`}
                       casperPrice={casperPrice}

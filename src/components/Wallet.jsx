@@ -18,6 +18,7 @@ import TextArea from 'antd/lib/input/TextArea';
 import { remote } from 'electron';
 import Datastore from 'nedb-promises';
 import axios from 'axios';
+import { MoreOutlined } from '@ant-design/icons';
 import GeneralModal from './GeneralModal';
 
 // images
@@ -313,25 +314,7 @@ const Wallet = ({
                   <span className="modal-description">
                     Explorer link{' '}
                     <span style={{ fontSize: 11, color: '#9c9393' }}>
-                      (After inclusion in a new block, you can review the{' '}
-                      <span
-                        role="link"
-                        onClick={() => {
-                          const url =
-                            selectedNetwork === 'casper-test'
-                              ? `https://testnet.cspr.live/deploy/${result}`
-                              : `https://cspr.live/deploy/${result}`;
-                          window.open(url, '_blank');
-                        }}
-                        style={{
-                          cursor: 'pointer',
-                          color: 'blue',
-                          textDecoration: 'underline',
-                        }}
-                      >
-                        Deploy Details
-                      </span>
-                      )
+                      (After inclusion in a new block )
                     </span>
                   </span>
                   <TextArea
@@ -692,7 +675,7 @@ const Wallet = ({
                     // onClick={(e) => e.preventDefault()}
                     style={{ cursor: 'pointer' }}
                   >
-                    . . .
+                    <MoreOutlined />
                   </div>
                 </Dropdown>
               </div>
