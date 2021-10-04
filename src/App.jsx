@@ -380,7 +380,7 @@ function App() {
                         Staking
                       </Link>
                     </Menu.Item>
-                    <Menu.Item key="5" icon={<SwapOutlined />}>
+                    {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                       <Link
                         to="/erc"
                         replace
@@ -390,7 +390,7 @@ function App() {
                       >
                         ERC20
                       </Link>
-                    </Menu.Item>
+                    </Menu.Item> */}
                     {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
               </Menu.Item> */}
