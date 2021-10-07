@@ -3,7 +3,6 @@
 import React, { useState, useContext } from 'react';
 import { Button, Input, notification } from 'antd';
 import path from 'path';
-import bip39 from 'bip39'; // mnemonic phrase package
 import { Keys } from 'casper-client-sdk';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
@@ -12,6 +11,8 @@ import { readFileSync } from 'fs';
 import WalletContext from '../../contexts/WalletContext';
 import { parseAlgorithm } from '../../utils/casper';
 import vault from '../../../assets/icons/vault-logo.png';
+
+const bip39 = require('bip39');
 
 function ImportFromFile(props) {
   const { onSubmit } = props;
@@ -101,7 +102,7 @@ function ImportFromFile(props) {
       console.log('error = ', error);
       notification.error({
         message: 'Error',
-        description: 'Unable to parse private key from file',
+        description: 'Error importing wallet from private key.',
       });
     }
   };
