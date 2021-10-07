@@ -11,6 +11,7 @@ import { readFileSync } from 'fs';
 import WalletContext from '../../contexts/WalletContext';
 import { parseAlgorithm } from '../../utils/casper';
 import vault from '../../../assets/icons/vault-logo.png';
+import Modal from './Modal';
 
 const bip39 = require('bip39');
 
@@ -117,40 +118,52 @@ function ImportFromFile(props) {
       </Button>
     );
   };
+  const [isImportFromFileModalVisible, setIsImportFromFileModalVisible] =
+    useState(false);
   return (
-    <div>
-      <div className="modal-vault-logo">
-        <img src={vault} alt="vault" className="image-modal" />
-      </div>
-      <div className="modal-title">Import from file</div>
-      <Input
-        type="text"
-        value={walletName}
-        placeholder="Wallet Name"
-        className="modal-input-amount"
-        onChange={onWalletNameChange}
-        maxLength={30}
-      />
-      <Button
-        style={{ width: '100%' }}
-        className="send-button-no-mt"
-        onClick={handleFileUpload}
-      >
-        Upload Private Key File
-      </Button>
-      {fileContents !== '' && (
-        <p
-          style={{
-            textAlign: 'center',
-            marginTop: '1rem',
-            marginBottom: '-1rem',
-          }}
+    <Modal
+      isModalVisible={isImportFromFileModalVisible}
+      setIsModalVisible={setIsImportFromFileModalVisible}
+      title="Import From File"
+      customOnCancelLogic={() => {
+        setWalletName('');
+        setFileContents('');
+      }}
+    >
+      <div>
+        <div className="modal-vault-logo">
+          <img src={vault} alt="vault" className="image-modal" />
+        </div>
+        <div className="modal-title">Import from file</div>
+        <Input
+          type="text"
+          value={walletName}
+          placeholder="Wallet Name"
+          className="modal-input-amount"
+          onChange={onWalletNameChange}
+          maxLength={30}
+        />
+        <Button
+          style={{ width: '100%' }}
+          className="send-button-no-mt"
+          onClick={handleFileUpload}
         >
-          File uploaded.
-        </p>
-      )}
-      {importFromFileFooter()}
-    </div>
+          Upload Private Key File
+        </Button>
+        {fileContents !== '' && (
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: '1rem',
+              marginBottom: '-1rem',
+            }}
+          >
+            File uploaded.
+          </p>
+        )}
+        {importFromFileFooter()}
+      </div>
+    </Modal>
   );
 }
 ImportFromFile.defaultProps = {

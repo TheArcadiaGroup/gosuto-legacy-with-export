@@ -326,7 +326,7 @@ function App() {
                         Staking
                       </Link>
                     </Menu.Item>
-                    <Menu.Item key="5" icon={<SwapOutlined />}>
+                    {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                       <Link
                         to="/erc"
                         replace
@@ -336,7 +336,7 @@ function App() {
                       >
                         ERC20
                       </Link>
-                    </Menu.Item>
+                    </Menu.Item> */}
                     {/* <Menu.Item key="5" icon={<SwapOutlined />}>
                 <Link to="/swap">Swap</Link>
               </Menu.Item> */}
@@ -386,7 +386,7 @@ function App() {
                     <Route path="/staking" component={StakingView} />
                     <Route path="/history" component={HistoryView} />
                     <Route path="/wallet" component={WalletView} />
-                    <Route path="/erc" component={ERCView} />
+                    {/*<Route path="/erc" component={ERCView} /> */}
                     {/* <Route path="/" component={PasswordView} /> */}
                     <Route path="/" component={Home} />
                   </Switch>

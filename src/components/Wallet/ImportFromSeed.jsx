@@ -10,6 +10,7 @@ import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import WalletContext from '../../contexts/WalletContext';
 import vault from '../../../assets/icons/vault-logo.png';
+import Modal from './Modal';
 
 const bip39 = require('bip39'); // mnemonic phrase package
 
@@ -101,49 +102,61 @@ function ImportFromSeed(props) {
   const onWalletNameChange = (event) => {
     setWalletName(event.target.value);
   };
-
+  const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
+    useState(false);
   return (
-    <div>
-      <div className="modal-vault-logo">
-        <img src={vault} alt="vault" className="image-modal" />
+    <Modal
+      isModalVisible={isImportFromSeedModalVisible}
+      setIsModalVisible={setIsImportFromSeedModalVisible}
+      title="Import From Seed"
+      customOnCancelLogic={() => {
+        setWalletName('');
+        setSeedToImportFrom('');
+        setSeedError(null);
+      }}
+    >
+      <div>
+        <div className="modal-vault-logo">
+          <img src={vault} alt="vault" className="image-modal" />
+        </div>
+        <div className="modal-title">Import from seed</div>
+        <Input
+          type="text"
+          placeholder="Wallet Name"
+          value={walletName}
+          className="modal-input-amount"
+          onChange={onWalletNameChange}
+          maxLength={30}
+        />
+        <TextArea
+          className="modal-input-amount"
+          placeholder="Your seed"
+          onChange={(e) => {
+            const { value } = e.target;
+            const cleanValue = value.replace(/\s+/g, ' ');
+            setSeedToImportFrom(cleanValue);
+            if (
+              cleanValue.trim().split(' ').length < 12 ||
+              cleanValue.trim().split(' ').length > 12
+            ) {
+              setSeedError('Seed has to contain 12 words exactly');
+            } else {
+              setSeedError(null);
+            }
+          }}
+          value={seedToImportFrom}
+        />
+        {seedError && <p style={{ color: 'red' }}>⚠ {seedError}</p>}
+        <Button
+          onClick={onImportFromSeed}
+          className="send-button-no-mt"
+          style={{ margin: 'auto', display: 'block' }}
+          disabled={seedError}
+        >
+          Import
+        </Button>
       </div>
-      <div className="modal-title">Import from seed</div>
-      <Input
-        type="text"
-        placeholder="Wallet Name"
-        value={walletName}
-        className="modal-input-amount"
-        onChange={onWalletNameChange}
-        maxLength={30}
-      />
-      <TextArea
-        className="modal-input-amount"
-        placeholder="Your seed"
-        onChange={(e) => {
-          const { value } = e.target;
-          const cleanValue = value.replace(/\s+/g, ' ');
-          setSeedToImportFrom(cleanValue);
-          if (
-            cleanValue.trim().split(' ').length < 12 ||
-            cleanValue.trim().split(' ').length > 12
-          ) {
-            setSeedError('Seed has to contain 12 words exactly');
-          } else {
-            setSeedError(null);
-          }
-        }}
-        value={seedToImportFrom}
-      />
-      {seedError && <p style={{ color: 'red' }}>⚠ {seedError}</p>}
-      <Button
-        onClick={onImportFromSeed}
-        className="send-button-no-mt"
-        style={{ margin: 'auto', display: 'block' }}
-        disabled={seedError}
-      >
-        Import
-      </Button>
-    </div>
+    </Modal>
   );
 }
 

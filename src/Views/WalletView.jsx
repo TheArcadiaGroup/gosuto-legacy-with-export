@@ -13,7 +13,6 @@ import {
   getLatestBlockInfo,
 } from '../services/casper';
 import WalletContext from '../contexts/WalletContext';
-import AddWallet from '../components/AddWallet';
 import NetworkContext from '../contexts/NetworkContext';
 import DataContext from '../contexts/DataContext';
 import ImportFromFile from '../components/Wallet/ImportFromFile';
@@ -30,11 +29,6 @@ const WalletView = () => {
   const [shouldUpdate, setShouldUpdate] = useState(false);
   const [casperPrice, setCasperPrice] = useState(0);
   const [defaultWallet, setDefaultWallet] = useState(null);
-  const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
-  const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
-    useState(false);
-  const [isImportFromFileModalVisible, setIsImportFromFileModalVisible] =
-    useState(false);
 
   useEffect(() => {
     async function getDefaultWallet(withGetBalances) {
@@ -160,50 +154,28 @@ const WalletView = () => {
       <div>
         <Row justify="space-between" align="middle">
           <Col span={7}>
-            <AddWallet
-              isModalVisible={isNewWalletModalVisible}
-              setIsModalVisible={setIsNewWalletModalVisible}
-              title="New Wallet"
-              customOnCancelLogic={() => {}}
-            >
-              <AddNewWallet
-                onSubmit={() => {
-                  setIsNewWalletModalVisible(false);
-                  setShouldUpdate(true);
-                  setData({ ...data, shouldUpdateWallets: true });
-                }}
-              />
-            </AddWallet>
+            <AddNewWallet
+              onSubmit={() => {
+                setShouldUpdate(true);
+                setData({ ...data, shouldUpdateWallets: true });
+              }}
+            />
           </Col>
           <Col span={7}>
-            <AddWallet
-              isModalVisible={isImportFromSeedModalVisible}
-              setIsModalVisible={setIsImportFromSeedModalVisible}
-              title="Import From Seed"
-            >
-              <ImportFromSeed
-                onSubmit={() => {
-                  setIsImportFromSeedModalVisible(false);
-                  setShouldUpdate(true);
-                  setData({ ...data, shouldUpdateWallets: true });
-                }}
-              />
-            </AddWallet>
+            <ImportFromSeed
+              onSubmit={() => {
+                setShouldUpdate(true);
+                setData({ ...data, shouldUpdateWallets: true });
+              }}
+            />
           </Col>
           <Col span={7}>
-            <AddWallet
-              isModalVisible={isImportFromFileModalVisible}
-              setIsModalVisible={setIsImportFromFileModalVisible}
-              title="Import From File"
-            >
-              <ImportFromFile
-                onSubmit={() => {
-                  setIsImportFromFileModalVisible(false);
-                  setShouldUpdate(true);
-                  setData({ ...data, shouldUpdateWallets: true });
-                }}
-              />
-            </AddWallet>
+            <ImportFromFile
+              onSubmit={() => {
+                setShouldUpdate(true);
+                setData({ ...data, shouldUpdateWallets: true });
+              }}
+            />
           </Col>
         </Row>
         {(pageLoading || data.shouldUpdateWallets) && (

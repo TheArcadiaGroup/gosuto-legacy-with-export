@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Tag, Button, Input, notification } from 'antd';
 import Datastore from 'nedb-promises';
 import TextArea from 'antd/lib/input/TextArea';
@@ -10,7 +11,7 @@ import { remote } from 'electron';
 
 import WalletContext from '../../contexts/WalletContext';
 import vault from '../../../assets/icons/vault-logo.png';
-
+import Modal from './Modal';
 // mnemonic phrase package
 const bip39 = require('bip39');
 
@@ -18,7 +19,7 @@ function AddNewWallet(props) {
   const { onSubmit } = props;
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [clicked, setClicked] = useState(false);
-  const [mnemonic] = useState(bip39.generateMnemonic());
+  const [mnemonic, setMnemonic] = useState(bip39.generateMnemonic());
   const [walletName, setWalletName] = useState('');
   const [accountHex, setAccountHex] = useState('');
   const [privateKey, setPrivateKey] = useState('');
@@ -219,6 +220,7 @@ function AddNewWallet(props) {
             className="modal-input-amount"
             placeholder="Wallet Name"
             onChange={onWalletNameChange}
+            value={walletName}
             maxLength={30}
           />
         </div>
@@ -243,7 +245,59 @@ function AddNewWallet(props) {
       </div>
     );
   };
-  return !clicked ? mnemonicModalSystem() : walletInformation();
+
+  const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
+  useEffect(() => {
+    async function regenerateWallet(mnemonic__) {
+      generateWallet(mnemonic__)
+        .then(
+          ({
+            accHex,
+            accHash,
+            privateKeyGenerated,
+            publicKeyUint8Generated,
+            privateKeyUint8Generated,
+          }) => {
+            setAccountHex(accHex);
+            setAccountHash(accHash);
+            setPrivateKey(privateKeyGenerated);
+            setPrivateKeyUint8(privateKeyUint8Generated);
+            setPublicKeyUint8(publicKeyUint8Generated);
+            return 0;
+          }
+        )
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log('Error in walletInformation : ', err);
+        });
+    }
+    regenerateWallet(mnemonic);
+  }, [mnemonic, generateWallet]);
+  return (
+    <Modal
+      isModalVisible={isNewWalletModalVisible}
+      setIsModalVisible={setIsNewWalletModalVisible}
+      title="New Wallet"
+      customOnCancelLogic={() => {
+        setIsNewWalletModalVisible(false);
+        setWalletName('');
+        setAccountHash('');
+        setAccountHex('');
+        setMnemonic(bip39.generateMnemonic());
+        setClicked(false);
+        setPrivateKeyUint8('');
+        setPublicKeyUint8('');
+      }}
+    >
+      {!clicked ? mnemonicModalSystem() : walletInformation()}
+    </Modal>
+  );
 }
 
+AddNewWallet.propTypes = {
+  onSubmit: PropTypes.func,
+};
+AddNewWallet.defaultProps = {
+  onSubmit: () => {},
+};
 export default AddNewWallet;
