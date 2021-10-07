@@ -107,7 +107,7 @@ const WalletItem = (props) => {
       <Menu.Item
         key="-1"
         onClick={async () => {
-          const defaultwallet = await db.findOne({ isDefaultWallet: true });
+          const defaultwallet = await db.findOne({ _id: selectedWallet._id });
           localStorage.setItem('defaultWallet', JSON.stringify(wallet));
           await db.update(
             { _id: wallet._id },
