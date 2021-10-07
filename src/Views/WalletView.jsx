@@ -110,7 +110,7 @@ const WalletView = () => {
               filtredWallets[index] = { ...wallet, balance, amount };
             })
         );
-        if (!defaultWallet) {
+        if (!localStorage.getItem('defaultWallet')) {
           localStorage.setItem(
             'defaultWallet',
             JSON.stringify(filtredWallets[0])
