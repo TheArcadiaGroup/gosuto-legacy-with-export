@@ -105,6 +105,8 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
+    minWidth: 1024,
+    minHeight: 728,
     icon: getAssetPath('vault-logo.png'),
     webPreferences: {
       nodeIntegration: true,
@@ -220,12 +222,12 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
   };
 
   dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) setImmediate(() => {
-      autoUpdater.quitAndInstall();
-    });
+    if (returnValue.response === 0)
+      setImmediate(() => {
+        autoUpdater.quitAndInstall();
+      });
   });
 });
-
 
 // autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
 //   sendStatusToWindow('Update available...');
@@ -241,4 +243,3 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 //     if (returnValue.response === 0) autoUpdater.quitAndInstall();
 //   });
 // });
-

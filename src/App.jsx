@@ -31,7 +31,6 @@ import logo from '../assets/icons/gosuto-logo.png';
 import copyLogo from '../assets/icons/copy.svg';
 // styles
 import './App.global.scss';
-import { getAccountBalance } from './services/casper';
 import PasswordView from './Views/PasswordView';
 import WalletContext from './contexts/WalletContext';
 import NetworkContext from './contexts/NetworkContext';
@@ -40,61 +39,6 @@ import GeneralModal from './components/GeneralModal';
 import SignDeployModal from './components/SignDeployModal';
 // import { signDeploy } from 'casper-client-sdk/dist/lib/DeployUtil';
 const { ipcRenderer, remote } = require('electron');
-// const { autoUpdater } = remote;
-// // Auto updater
-// const server = 'https://gosuto-rs.herokuapp.com';
-// const url = `${server}/update/${process.platform}/${remote.app.getVersion()}`;
-// autoUpdater.setFeedURL({ url });
-// setInterval(() => {
-//   autoUpdater.checkForUpdates();
-// }, 60000);
-
-// autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-//   const dialogOpts = {
-//     type: 'info',
-//     buttons: ['Restart', 'Later'],
-//     title: 'Application Update',
-//     message: process.platform === 'win32' ? releaseNotes : releaseName,
-//     detail:
-//       'A new version has been downloaded. Restart the application to apply the updates.',
-//   };
-
-//   dialog.showMessageBox(dialogOpts).then((returnValue) => {
-//     if (returnValue.response === 0) autoUpdater.quitAndInstall();
-//   });
-// });
-// autoUpdater.on('checking-for-update', (event, releaseNotes, releaseName) => {
-//   const dialogOpts = {
-//     type: 'info',
-//     buttons: ['Restart', 'Later'],
-//     title: 'checking-for-update',
-//     message: process.platform === 'win32' ? releaseNotes : releaseName,
-//     detail: 'checking-for-update',
-//   };
-
-//   dialog.showMessageBox(dialogOpts).then((returnValue) => {
-//     if (returnValue.response === 0) autoUpdater.quitAndInstall();
-//   });
-// });
-
-// autoUpdater.on('update-available', (event, releaseNotes, releaseName) => {
-//   const dialogOpts = {
-//     type: 'info',
-//     buttons: ['Restart', 'Later'],
-//     title: 'update-available',
-//     message: process.platform === 'win32' ? releaseNotes : releaseName,
-//     detail: 'update-available',
-//   };
-
-//   dialog.showMessageBox(dialogOpts).then((returnValue) => {
-//     if (returnValue.response === 0) autoUpdater.quitAndInstall();
-//   });
-// });
-
-// autoUpdater.on('error', (message) => {
-//   console.error('There was a problem updating the application');
-//   console.error(message);
-// });
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
@@ -198,6 +142,7 @@ function App() {
     validatorRewards: 0,
     stakingLastUpdate: new Date(),
     cPrice: 0,
+    cPriceLastUpdate: null,
     accountBalance: 0,
     shouldUpdateWallet: false,
     shouldUpdateHistory: false,
@@ -255,6 +200,7 @@ function App() {
       onClick: () => {},
     });
   };
+
   return (
     <DataContext.Provider value={[data, setData]}>
       <NetworkContext.Provider value={[selectedNetwork, setSelectedNetwork]}>
