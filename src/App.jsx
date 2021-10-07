@@ -386,7 +386,7 @@ function App() {
                     <Route path="/staking" component={StakingView} />
                     <Route path="/history" component={HistoryView} />
                     <Route path="/wallet" component={WalletView} />
-                    {/*<Route path="/erc" component={ERCView} /> */}
+                    {/* <Route path="/erc" component={ERCView} /> */}
                     {/* <Route path="/" component={PasswordView} /> */}
                     <Route path="/" component={Home} />
                   </Switch>
