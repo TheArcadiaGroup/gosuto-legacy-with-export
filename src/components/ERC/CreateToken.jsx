@@ -52,6 +52,7 @@ const CreateToken = (props) => {
   const [isMintable, setIsMintable] = useState(false);
   const [authorizedMinter, setAuthorizedMinter] = useState(null);
   const [apiresponse, setApiresponse] = useState('');
+
   const updateFromState = () => {
     setAuthorizedMinter(null);
     setIsMintable(null);
@@ -175,12 +176,13 @@ const CreateToken = (props) => {
             }
           });
           const transaction = {
-            amount: 0,
+            amount: 90 * 1e9,
             deployHash: response?.data,
             fromAccount: wallet?.accountHex,
             timestamp: new Date(),
             toAccount: null,
             transferId: '',
+            type: 'createERCToken',
             method: 'Pending',
             wallet: selectedWallet.accountHex,
             network: selectedNetwork,
@@ -251,25 +253,7 @@ const CreateToken = (props) => {
             <span className="modal-description">
               Explorer link{' '}
               <span style={{ fontSize: 11, color: '#9c9393' }}>
-                (After inclusion in a new block, you can review the{' '}
-                <span
-                  role="link"
-                  onClick={() => {
-                    const url =
-                      selectedNetwork === 'casper-test'
-                        ? `https://testnet.cspr.live/deploy/${apiresponse}`
-                        : `https://cspr.live/deploy/${apiresponse}`;
-                    window.open(url, '_blank');
-                  }}
-                  style={{
-                    cursor: 'pointer',
-                    color: 'blue',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Deploy Details
-                </span>
-                )
+                (After inclusion in a new block )
               </span>
             </span>
             <TextArea
@@ -452,6 +436,7 @@ const CreateToken = (props) => {
                           type="primary"
                           onClick={onSubmit}
                           className="send-button"
+                          disabled={!selectedWallet}
                         >
                           Submit
                         </Button>

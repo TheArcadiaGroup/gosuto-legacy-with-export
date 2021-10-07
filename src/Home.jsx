@@ -147,7 +147,10 @@ const Home = () => {
               ' / ' +
               totalSupply.toLocaleString()
             }
-            amount={(casperPrice * circulatingSupply).toLocaleString() + ' USD'}
+            amount={
+              (casperPrice * circulatingSupply).toFixed(0).toLocaleString() +
+              ' USD'
+            }
           />
         </Col>
       </Row>

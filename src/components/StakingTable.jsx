@@ -158,6 +158,7 @@ const StakingTable = ({
           timestamp: new Date(),
           fromAccount: validatorPublicKey,
           transferId: '',
+          type: 'undelegate',
           method: 'Pending',
           network: selectedNetwork,
           wallet: selectedWallet.accountHex,

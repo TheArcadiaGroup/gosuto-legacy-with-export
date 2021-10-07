@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+/* eslint-disable no-underscore-dangle */
+import React, { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Card,
@@ -9,7 +10,6 @@ import {
   Dropdown,
   InputNumber,
   Input,
-  Select,
   Tag,
   notification,
   Spin,
@@ -19,38 +19,34 @@ import { remote } from 'electron';
 import Datastore from 'nedb-promises';
 import axios from 'axios';
 import { MoreOutlined } from '@ant-design/icons';
-import GeneralModal from './GeneralModal';
+import GeneralModal from '../GeneralModal';
 
 // images
-import vault from '../../assets/icons/vault-logo.png';
+import vault from '../../../assets/icons/vault-logo.png';
 
 // styles
-import './components.global.scss';
-import '../App.global.scss';
+import '../components.global.scss';
+import '../../App.global.scss';
 
-import WalletContext from '../contexts/WalletContext';
-import { transfer } from '../services/casper';
-import NetworkContext from '../contexts/NetworkContext';
+import WalletContext from '../../contexts/WalletContext';
+import { transfer } from '../../services/casper';
+import NetworkContext from '../../contexts/NetworkContext';
+import DataContext from '../../contexts/DataContext';
 
-const Wallet = ({
-  tag,
-  title,
-  amount,
-  secondaryTitle,
-  secondaryAmount,
-  id,
-  db,
-  setShouldUpdate,
-  shouldUpdate,
-  setWallets,
-  wallets,
-  setData,
-  wallet,
-  data,
-  casperPrice,
-}) => {
+const fs = require('fs');
+
+const WalletItem = (props) => {
+  const {
+    title,
+    amount,
+    secondaryTitle,
+    secondaryAmount,
+    wallet,
+    casperPrice,
+  } = props;
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
-  const [selectedNetwork, setSelectedNetwork] = useContext(NetworkContext);
+  const [selectedNetwork] = useContext(NetworkContext);
+  const [data, setData] = useContext(DataContext);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [walletDetailsModalVisible, setWalletDetailsModalVisible] =
@@ -60,11 +56,13 @@ const Wallet = ({
   const [amountToSend, setAmountToSend] = useState(2.5);
   const [recipient, setRecipient] = useState('');
   const [note, setNote] = useState('');
-  const [network, setNetwork] = useState('');
   const [isPendingTransfer, setIsPendingTransfer] = useState(false);
   const [sendComplete, setSendComplete] = useState(false);
   const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
-
+  const db = Datastore.create({
+    filename: `${remote.app.getPath('userData')}/wallets.db`,
+    timestampData: true,
+  });
   const openNotification = () => {
     notification.success({
       message: 'Copied',
@@ -75,13 +73,50 @@ const Wallet = ({
     });
   };
 
+  const removeWallet = async () => {
+    await db.remove({ _id: wallet._id });
+    notification.success({
+      message: 'Success',
+      description: 'Wallet successfully removed',
+    });
+    const newWallets = data.wallets.filter(
+      (walletLocal) => walletLocal._id !== wallet._id
+    );
+    const defaultWallet = localStorage.getItem('defaultWallet');
+    if (JSON.parse(defaultWallet)._id === wallet._id) {
+      if (newWallets.length > 0) {
+        localStorage.setItem('defaultWallet', JSON.stringify(newWallets[0]));
+        setSelectedWallet(newWallets[0]);
+        notification.success({
+          message: 'Info',
+          description: 'New default Wallet Is Seted For You',
+        });
+      } else {
+        localStorage.removeItem('defaultWallet');
+        setSelectedWallet(null);
+      }
+    }
+    setData({
+      ...data,
+      wallets: newWallets,
+      shouldUpdateWallets: true,
+    });
+  };
   const menu = (
     <Menu>
       <Menu.Item
         key="-1"
         onClick={async () => {
-          const wallet = await db.findOne({ _id: id });
+          const defaultwallet = await db.findOne({ _id: selectedWallet._id });
           localStorage.setItem('defaultWallet', JSON.stringify(wallet));
+          await db.update(
+            { _id: wallet._id },
+            { ...wallet, isDefaultWallet: true }
+          );
+          await db.update(
+            { _id: defaultwallet._id },
+            { ...defaultwallet, isDefaultWallet: false }
+          );
           setSelectedWallet(wallet);
           setData({
             ...data,
@@ -127,29 +162,8 @@ const Wallet = ({
     </Menu>
   );
 
-  const removeWallet = async () => {
-    const defaultWallet = localStorage.getItem('defaultWallet');
-    if (defaultWallet) {
-      if (JSON.parse(defaultWallet)._id === id) {
-        localStorage.removeItem('defaultWallet');
-      }
-    }
-    await db.remove({ _id: id });
-    const newWallets = wallets.filter((wallet) => wallet._id != id);
-    setWallets(newWallets);
-    setData({
-      ...data,
-      wallets: newWallets,
-      walletsLastUpdate: new Date(),
-      shouldUpdateWallets: false,
-    });
-    // setShouldUpdate(!shouldUpdate);
-  };
   const showModal = () => {
     setIsModalVisible(true);
-  };
-  const showWalletDetailsModal = () => {
-    setWalletDetailsModalVisible(true);
   };
   const onChangeAmount = (value) => {
     if (parseFloat(value) >= 2.5) setAmountToSend(parseFloat(value));
@@ -158,13 +172,71 @@ const Wallet = ({
     setRecipient(event.target.value);
   };
   const onChangeNote = (event) => {
-    console.log('note changed', event.target.value);
     if (event.target.value.indexOf('-') >= 0) return;
     if (Number.isNaN(event.target.value)) return;
     if (event.target.value.indexOf('e') < 0) setNote(event.target.value);
   };
-  const handleSelect = (value) => {
-    setNetwork(value);
+  const onSendConfirm = async () => {
+    try {
+      setIsPendingTransfer(true);
+      // const wallet = await db.findOne({ _id: id });
+      let newNote;
+      if (Number.isNaN(parseInt(note, 10))) {
+        newNote = new Date().getTime();
+      } else {
+        newNote = note;
+      }
+      const res = await transfer(
+        // selectedWallet?.publicKeyUint8,
+        wallet?.privateKeyUint8,
+        recipient,
+        parseFloat(amountToSend) * 1e9,
+        selectedNetwork,
+        newNote
+      );
+      if (res?.data?.deploy_hash) {
+        setResult(res?.data?.deploy_hash);
+      } else {
+        setResult(res.data);
+      }
+      const transaction = {
+        amount: parseFloat(amountToSend) * 1e9,
+        deployHash: res?.data?.deploy_hash,
+        fromAccount: wallet?.accountHex,
+        timestamp: new Date(),
+        toAccount: recipient,
+        transferId: newNote,
+        type: 'transfer',
+        method: 'Pending',
+        network: selectedNetwork,
+        wallet: selectedWallet.accountHex,
+      };
+      const pendingHistoryDB = Datastore.create({
+        filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
+        timestampData: true,
+      });
+      if (result?.data?.deploy_hash) {
+        await pendingHistoryDB.insert(transaction);
+        setData({
+          ...data,
+          pendingHistory: [...data.pendingHistory, transaction],
+          shouldUpdateHistory: true,
+        });
+        setTimeout(() => {
+          setData({
+            ...data,
+            wallets: 0,
+            shouldUpdateWallets: true,
+          });
+        }, 170000);
+      }
+
+      setIsPendingTransfer(false);
+      setSendComplete(true);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(error);
+    }
   };
   const sendModalSystem = () => {
     return (
@@ -368,8 +440,6 @@ const Wallet = ({
     );
   };
 
-  const sendConfirmation = () => {};
-
   const onPrivateKeyExport = async () => {
     const port = parseInt(
       global.location.search.substr(
@@ -378,11 +448,10 @@ const Wallet = ({
       ),
       10
     );
-    const wallet = await db.findOne({ _id: id });
+    // const wallet = await db.findOne({ _id: id });
     const ret = await axios.post(`http://localhost:${port}/pem`, {
       privateKey: wallet.privateKeyUint8,
     });
-    console.log('ret = ', ret.data);
     const { dialog } = remote;
     const options = {
       title: 'Save file',
@@ -397,73 +466,13 @@ const Wallet = ({
     dialog
       .showSaveDialog(null, options)
       .then(({ filePath }) => {
-        const fs = require('fs');
         fs.writeFileSync(filePath, ret.data, 'utf-8');
+        return '';
       })
       .catch((err) => {
+        // eslint-disable-next-line no-console
         console.log('error =', err);
       });
-  };
-
-  const onSendConfirm = async () => {
-    try {
-      setIsPendingTransfer(true);
-      const wallet = await db.findOne({ _id: id });
-      let newNote;
-      if (Number.isNaN(parseInt(note, 10))) {
-        newNote = new Date().getTime();
-      } else {
-        newNote = note;
-      }
-      const result = await transfer(
-        // selectedWallet?.publicKeyUint8,
-        wallet?.privateKeyUint8,
-        recipient,
-        parseFloat(amountToSend) * 1e9,
-        selectedNetwork,
-        newNote
-      );
-      result?.data?.deploy_hash
-        ? setResult(result?.data?.deploy_hash)
-        : setResult(result.data);
-      console.log('selectedNetwork = ', selectedNetwork);
-      const transaction = {
-        amount: parseFloat(amountToSend) * 1e9,
-        deployHash: result?.data?.deploy_hash,
-        fromAccount: wallet?.accountHex,
-        timestamp: new Date(),
-        toAccount: recipient,
-        transferId: newNote,
-        type: 'transfer',
-        method: 'Pending',
-        network: selectedNetwork,
-        wallet: selectedWallet.accountHex,
-      };
-      console.log('transfer res = ', result);
-      const pendingHistoryDB = Datastore.create({
-        filename: `${remote.app.getPath('userData')}/pendingHistory.db`,
-        timestampData: true,
-      });
-      if (result?.data?.deploy_hash) {
-        await pendingHistoryDB.insert(transaction);
-        setData({
-          ...data,
-          pendingHistory: [...data.pendingHistory, transaction],
-          shouldUpdateHistory: true,
-        });
-        setTimeout(() => {
-          console.log('updating wallets');
-          setData({
-            ...data,
-            wallets: 0,
-            shouldUpdateWallets: true,
-          });
-        }, 170000);
-      }
-
-      setIsPendingTransfer(false);
-      setSendComplete(true);
-    } catch (error) {}
   };
 
   const customOnCancelLogic = () => {
@@ -477,31 +486,26 @@ const Wallet = ({
     openNotification();
   };
   const ViewMnemonicModalSystem = () => {
-    const [wallet, setWallet] = useState();
+    // const [wallet, setWallet] = useState();
     const [newWalletName, setNewWalletName] = useState('');
 
-    useEffect(() => {
-      async function getWalletInfo() {
-        const walletDb = await db.findOne({ _id: id });
-        setWallet(walletDb);
-        setNewWalletName(walletDb.walletName);
-      }
-      getWalletInfo();
-    }, [id]);
     const onUpdate = async () => {
       try {
-        const walletDb = await db.findOne({ _id: id });
-        walletDb.walletName = newWalletName;
         await db.update(
-          { _id: id },
-          { ...walletDb, walletName: newWalletName }
+          { _id: wallet._id },
+          { ...wallet, walletName: newWalletName }
         );
         setWalletDetailsModalVisible(false);
+
+        if (selectedWallet._id === wallet._id) {
+          setSelectedWallet({ ...selectedWallet, walletName: newWalletName });
+        }
+        const newWallets = await db.find({});
+        setData({ ...data, wallets: newWallets, shouldUpdateWallets: true });
         notification.success({
           message: 'Success',
           description: 'Wallet name successfully updated',
         });
-        setShouldUpdate(!shouldUpdate);
       } catch (error) {
         notification.error({
           message: 'Error',
@@ -528,6 +532,7 @@ const Wallet = ({
                     onChange={(e) => {
                       setNewWalletName(e.target.value);
                     }}
+                    maxLength={30}
                   />
                   <Button onClick={onUpdate}>Update</Button>
                 </div>
@@ -629,7 +634,7 @@ const Wallet = ({
                     {mnemonicWords?.map((word, index) => (
                       <div
                         className="mnemonic-word"
-                        key={`mnemonic-word-${index}`}
+                        key={`mnemonic-word-${word}`}
                       >
                         <span className="mnemonic-number">{index + 1}.</span>{' '}
                         <Tag className="mnemonic-tag" color="processing">
@@ -661,13 +666,13 @@ const Wallet = ({
             className="wallet-card"
             style={
               // eslint-disable-next-line no-underscore-dangle
-              selectedWallet?._id === id
+              selectedWallet?._id === wallet._id
                 ? { border: '3px solid #5F24FB', borderRadius: '20px' }
                 : { marginBottom: '20px' }
             }
           >
             <div className="wallet-card-display-flex">
-              <div className="wallet-card-tag">{tag}</div>
+              <div className="wallet-card-tag">{wallet.walletName}</div>
               <div className="dropdown-holder">
                 <Dropdown overlay={menu} trigger={['click']}>
                   <div
@@ -730,20 +735,18 @@ const Wallet = ({
   );
 };
 
-/* Wallet.propTypes = {
-  tag: PropTypes.string,
-  title: PropTypes.string,
-  amount: PropTypes.string,
+WalletItem.propTypes = {
+  wallet: PropTypes.objectOf({ isDefaultWallet: PropTypes.bool }).isRequired,
+  title: PropTypes.string.isRequired,
+  amount: PropTypes.string.isRequired,
   secondaryTitle: PropTypes.string,
   secondaryAmount: PropTypes.string,
-  id: PropTypes.any,
-  db: PropTypes.any,
-  setShouldUpdate: PropTypes.any,
-  shouldUpdate: PropTypes.any,
-  setWallets: PropTypes.any,
-  wallets: PropTypes.any,
-  setData: PropTypes.any,
-  data: PropTypes.any,
-}; */
+  casperPrice: PropTypes.string,
+};
+WalletItem.defaultProps = {
+  secondaryTitle: '',
+  secondaryAmount: '',
+  casperPrice: 0,
+};
 
-export default Wallet;
+export default WalletItem;

@@ -63,6 +63,15 @@ const StakingView = () => {
   const onChangeAmount = (value) => {
     setAmountToDelegate(parseFloat(value));
   };
+  const openNotification = (description) => {
+    notification.success({
+      message: 'Copied',
+      description,
+      duration: 3,
+      className: 'custom-notification',
+      onClick: () => {},
+    });
+  };
   useEffect(() => {
     async function getStakingDetails() {
       try {
@@ -276,7 +285,7 @@ const StakingView = () => {
                 <Button
                   onClick={async () => {
                     await navigator.clipboard.writeText(result);
-                    openNotification();
+                    openNotification('Deploy hash copied.');
                   }}
                   className="send-button-no-mt"
                   style={{ margin: 'auto', display: 'block' }}
@@ -308,7 +317,7 @@ const StakingView = () => {
                           ? `https://testnet.cspr.live/deploy/${result}`
                           : `https://cspr.live/deploy/${result}`;
                       await navigator.clipboard.writeText(url);
-                      openNotification();
+                      openNotification('Explorer link copied.');
                     }}
                     className="send-button-no-mt"
                     style={{ margin: 'auto', display: 'block' }}
@@ -344,16 +353,6 @@ const StakingView = () => {
         )}
       </div>
     );
-  };
-
-  const openNotification = () => {
-    notification.success({
-      message: 'Copied',
-      description: 'Deploy hash copied.',
-      duration: 3,
-      className: 'custom-notification',
-      onClick: () => {},
-    });
   };
 
   const onEarnConfirm = async () => {
@@ -395,6 +394,7 @@ const StakingView = () => {
           timestamp: new Date(),
           toAccount: validatorPublicKey,
           transferId: '',
+          type: 'delegate',
           method: 'Pending',
           wallet: selectedWallet.accountHex,
           network: selectedNetwork,
