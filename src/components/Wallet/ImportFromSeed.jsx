@@ -21,6 +21,8 @@ function ImportFromSeed(props) {
   const [seedToImportFrom, setSeedToImportFrom] = useState('');
   const [walletName, setWalletName] = useState('');
   const [seedError, setSeedError] = useState(null);
+  const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
+    useState(false);
 
   const generateWallet = async (customMnemonic) => {
     try {
@@ -91,6 +93,7 @@ function ImportFromSeed(props) {
         setSelectedWallet(newWallet);
       }
       onSubmit(newWallet);
+      setIsImportFromSeedModalVisible(false);
     } catch (error) {
       notification.error({
         message: 'Error',
@@ -102,8 +105,7 @@ function ImportFromSeed(props) {
   const onWalletNameChange = (event) => {
     setWalletName(event.target.value);
   };
-  const [isImportFromSeedModalVisible, setIsImportFromSeedModalVisible] =
-    useState(false);
+
   return (
     <Modal
       isModalVisible={isImportFromSeedModalVisible}

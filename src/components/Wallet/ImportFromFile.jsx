@@ -20,6 +20,8 @@ function ImportFromFile(props) {
   const [selectedWallet, setSelectedWallet] = useContext(WalletContext);
   const [fileContents, setFileContents] = useState('');
   const [walletName, setWalletName] = useState('');
+  const [isImportFromFileModalVisible, setIsImportFromFileModalVisible] =
+    useState(false);
 
   const handleFileUpload = async () => {
     const { dialog } = remote;
@@ -94,6 +96,7 @@ function ImportFromFile(props) {
         setSelectedWallet(newWallet);
       }
       onSubmit(newWallet);
+      setIsImportFromFileModalVisible(false);
       notification.success({
         message: 'Success',
         description: 'Wallet successfully imported.',
@@ -118,8 +121,7 @@ function ImportFromFile(props) {
       </Button>
     );
   };
-  const [isImportFromFileModalVisible, setIsImportFromFileModalVisible] =
-    useState(false);
+
   return (
     <Modal
       isModalVisible={isImportFromFileModalVisible}

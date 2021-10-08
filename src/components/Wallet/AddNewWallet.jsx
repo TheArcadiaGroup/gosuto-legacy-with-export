@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Tag, Button, Input, notification } from 'antd';
 import Datastore from 'nedb-promises';
@@ -27,6 +27,7 @@ function AddNewWallet(props) {
   const [publicKeyUint8, setPublicKeyUint8] = useState('');
   const [privateKeyUint8, setPrivateKeyUint8] = useState('');
   const [shouldRevealPrivateKey, setShouldRevealPrivateKey] = useState(false);
+  const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   const onWalletNameChange = (event) => {
     setWalletName(event.target.value);
   };
@@ -59,6 +60,7 @@ function AddNewWallet(props) {
         setSelectedWallet(newWallet);
       }
       onSubmit(newWallet);
+      setIsNewWalletModalVisible(false);
     } catch (error) {
       notification.error({
         message: 'Error',
@@ -92,44 +94,47 @@ function AddNewWallet(props) {
       </div>
     );
   };
-  const generateWallet = async (customMnemonic) => {
-    try {
-      let accHex = '';
-      const cleanMnemonic = mnemonic
-        .split(' ')
-        .map((mnemonic_) => mnemonic_.trim())
-        .join(' ');
-      const mnemonicToUse = customMnemonic || cleanMnemonic;
-      const currentMnemonicSeed = await bip39.mnemonicToSeed(mnemonicToUse);
-      // const nw = EthereumHDKey.fromMasterSeed(currentMnemonicSeed);
-      const keyPairFromSeed = nacl.sign.keyPair.fromSeed(
-        Uint8Array.from(currentMnemonicSeed.subarray(0, 32)).valueOf()
-      );
-      const edKey = new Keys.Ed25519(keyPairFromSeed);
-      accHex = edKey.accountHex();
-      const publicKey = PublicKey.fromBytes(
-        PublicKey.fromHex(edKey.accountHex()).toBytes()
-      ).value();
-      let accHash;
-      accHex = publicKey.toAccountHex();
-      accHash = publicKey.toAccountHash();
-      accHash = Buffer.from(accHash).toString('hex');
-      const privateKeyLocal = Buffer.from(edKey.privateKey).toString('hex');
-      const res = {
-        accHex,
-        accHash,
-        privateKey: privateKeyLocal,
-        privateKeyUint8: edKey.privateKey,
-        publicKeyUint8: edKey.publicKey.rawPublicKey,
-      };
-      return res;
-    } catch (error) {
-      notification.error({
-        message: 'Error',
-        description: error,
-      });
-    }
-  };
+  const generateWallet = useCallback(
+    async (customMnemonic) => {
+      try {
+        let accHex = '';
+        const cleanMnemonic = mnemonic
+          .split(' ')
+          .map((mnemonic_) => mnemonic_.trim())
+          .join(' ');
+        const mnemonicToUse = customMnemonic || cleanMnemonic;
+        const currentMnemonicSeed = await bip39.mnemonicToSeed(mnemonicToUse);
+        // const nw = EthereumHDKey.fromMasterSeed(currentMnemonicSeed);
+        const keyPairFromSeed = nacl.sign.keyPair.fromSeed(
+          Uint8Array.from(currentMnemonicSeed.subarray(0, 32)).valueOf()
+        );
+        const edKey = new Keys.Ed25519(keyPairFromSeed);
+        accHex = edKey.accountHex();
+        const publicKey = PublicKey.fromBytes(
+          PublicKey.fromHex(edKey.accountHex()).toBytes()
+        ).value();
+        let accHash;
+        accHex = publicKey.toAccountHex();
+        accHash = publicKey.toAccountHash();
+        accHash = Buffer.from(accHash).toString('hex');
+        const privateKeyLocal = Buffer.from(edKey.privateKey).toString('hex');
+        const res = {
+          accHex,
+          accHash,
+          privateKey: privateKeyLocal,
+          privateKeyUint8: edKey.privateKey,
+          publicKeyUint8: edKey.publicKey.rawPublicKey,
+        };
+        return res;
+      } catch (error) {
+        notification.error({
+          message: 'Error',
+          description: error,
+        });
+      }
+    },
+    [mnemonic]
+  );
   const walletInformation = (customMnemonic) => {
     if (
       privateKey === '' &&
@@ -139,22 +144,14 @@ function AddNewWallet(props) {
       clicked
     ) {
       generateWallet(customMnemonic)
-        .then(
-          ({
-            accHex,
-            accHash,
-            privateKeyGenerated,
-            publicKeyUint8Generated,
-            privateKeyUint8Generated,
-          }) => {
-            setAccountHex(accHex);
-            setAccountHash(accHash);
-            setPrivateKey(privateKeyGenerated);
-            setPrivateKeyUint8(privateKeyUint8Generated);
-            setPublicKeyUint8(publicKeyUint8Generated);
-            return 0;
-          }
-        )
+        .then((res) => {
+          setAccountHex(res.accHex);
+          setAccountHash(res.accHash);
+          setPrivateKey(res.privateKey);
+          setPrivateKeyUint8(res.privateKeyUint8);
+          setPublicKeyUint8(res.publicKeyUint8);
+          return 0;
+        })
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.log('Error in walletInformation : ', err);
@@ -246,26 +243,17 @@ function AddNewWallet(props) {
     );
   };
 
-  const [isNewWalletModalVisible, setIsNewWalletModalVisible] = useState(false);
   useEffect(() => {
     async function regenerateWallet(mnemonic__) {
       generateWallet(mnemonic__)
-        .then(
-          ({
-            accHex,
-            accHash,
-            privateKeyGenerated,
-            publicKeyUint8Generated,
-            privateKeyUint8Generated,
-          }) => {
-            setAccountHex(accHex);
-            setAccountHash(accHash);
-            setPrivateKey(privateKeyGenerated);
-            setPrivateKeyUint8(privateKeyUint8Generated);
-            setPublicKeyUint8(publicKeyUint8Generated);
-            return 0;
-          }
-        )
+        .then((res) => {
+          setAccountHex(res.accHex);
+          setAccountHash(res.accHash);
+          setPrivateKey(res.privateKey);
+          setPrivateKeyUint8(res.privateKeyUint8);
+          setPublicKeyUint8(res.publicKeyUint8);
+          return 0;
+        })
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.log('Error in walletInformation : ', err);
@@ -287,6 +275,7 @@ function AddNewWallet(props) {
         setClicked(false);
         setPrivateKeyUint8('');
         setPublicKeyUint8('');
+        setShouldRevealPrivateKey(false);
       }}
     >
       {!clicked ? mnemonicModalSystem() : walletInformation()}
