@@ -499,6 +499,8 @@ const WalletItem = (props) => {
 
         if (selectedWallet._id === wallet._id) {
           setSelectedWallet({ ...selectedWallet, walletName: newWalletName });
+          const selectedW = { ...selectedWallet, walletName: newWalletName };
+          localStorage.setItem('defaultWallet', JSON.stringify(selectedW));
         }
         const newWallets = await db.find({});
         setData({ ...data, wallets: newWallets, shouldUpdateWallets: true });
