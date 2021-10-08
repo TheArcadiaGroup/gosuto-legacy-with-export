@@ -64,6 +64,7 @@ function ImportFromSeed(props) {
   };
   const onImportFromSeed = async () => {
     try {
+      console.log(seedToImportFrom.trim());
       const { accHex, accHash, privateKey, publicKeyUint8, privateKeyUint8 } =
         await generateWallet(seedToImportFrom.trim());
       const db = Datastore.create({
@@ -80,7 +81,7 @@ function ImportFromSeed(props) {
         privateKey,
         publicKeyUint8,
         privateKeyUint8,
-        mnemonic: seedToImportFrom,
+        mnemonic: seedToImportFrom.trim(),
         hasMnemonic: true,
       });
       if (!localStorage.getItem('defaultWallet') && !selectedWallet) {
