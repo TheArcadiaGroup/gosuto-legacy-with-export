@@ -396,7 +396,7 @@ const WalletItem = (props) => {
                     value={
                       selectedNetwork === 'casper-test'
                         ? `https://testnet.cspr.live/deploy/${result}`
-                        : `https://cspr.live/deploy/${result}`
+                        : `https://casperstats.io/tx/${result}`
                     }
                     disabled
                   />
@@ -406,7 +406,7 @@ const WalletItem = (props) => {
                         const url =
                           selectedNetwork === 'casper-test'
                             ? `https://testnet.cspr.live/deploy/${result}`
-                            : `https://cspr.live/deploy/${result}`;
+                            : `https://casperstats.io/tx/${result}`;
                         await navigator.clipboard.writeText(url);
                         openNotification();
                       }}
@@ -421,7 +421,7 @@ const WalletItem = (props) => {
                         const url =
                           selectedNetwork === 'casper-test'
                             ? `https://testnet.cspr.live/deploy/${result}`
-                            : `https://cspr.live/deploy/${result}`;
+                            : `https://casperstats.io/tx/${result}`;
                         window.open(url, '_blank');
                       }}
                       className="send-button-no-mt"

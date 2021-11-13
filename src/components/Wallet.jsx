@@ -324,7 +324,7 @@ const Wallet = ({
                     value={
                       selectedNetwork === 'casper-test'
                         ? `https://testnet.cspr.live/deploy/${result}`
-                        : `https://cspr.live/deploy/${result}`
+                        : `https://casperstats.io/tx/${result}`
                     }
                     disabled
                   />
@@ -334,7 +334,7 @@ const Wallet = ({
                         const url =
                           selectedNetwork === 'casper-test'
                             ? `https://testnet.cspr.live/deploy/${result}`
-                            : `https://cspr.live/deploy/${result}`;
+                            : `https://casperstats.io/tx/${result}`;
                         await navigator.clipboard.writeText(url);
                         openNotification();
                       }}
@@ -349,7 +349,7 @@ const Wallet = ({
                         const url =
                           selectedNetwork === 'casper-test'
                             ? `https://testnet.cspr.live/deploy/${result}`
-                            : `https://cspr.live/deploy/${result}`;
+                            : `https://casperstats.io/tx/${result}`;
                         window.open(url, '_blank');
                       }}
                       className="send-button-no-mt"

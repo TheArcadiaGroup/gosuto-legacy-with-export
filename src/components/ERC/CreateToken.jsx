@@ -263,7 +263,7 @@ const CreateToken = (props) => {
               value={
                 selectedNetwork === 'casper-test'
                   ? `https://testnet.cspr.live/deploy/${apiresponse}`
-                  : `https://cspr.live/deploy/${apiresponse}`
+                  : `https://casperstats.io/tx/${apiresponse}`
               }
               disabled
             />
@@ -273,7 +273,7 @@ const CreateToken = (props) => {
                   const url =
                     selectedNetwork === 'casper-test'
                       ? `https://testnet.cspr.live/deploy/${apiresponse}`
-                      : `https://cspr.live/deploy/${apiresponse}`;
+                      : `https://casperstats.io/tx/${apiresponse}`;
                   await navigator.clipboard.writeText(url);
                   openNotification();
                 }}
@@ -288,7 +288,7 @@ const CreateToken = (props) => {
                   const url =
                     selectedNetwork === 'casper-test'
                       ? `https://testnet.cspr.live/deploy/${apiresponse}`
-                      : `https://cspr.live/deploy/${apiresponse}`;
+                      : `https://casperstats.io/tx/${apiresponse}`;
                   window.open(url, '_blank');
                 }}
                 className="send-button-no-mt"

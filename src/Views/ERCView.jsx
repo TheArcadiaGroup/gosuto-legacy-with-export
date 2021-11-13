@@ -44,6 +44,9 @@ const ERCView = () => {
       }
       const ERCTOKEN = mongoose.model('ERCTokens');
       const tokensDb = await ERCTOKEN.find({}).lean().exec();
+
+      console.log('TOKENS DB', tokensDb);
+
       setTokens(tokensDb);
       setPageLoading(false);
     }

@@ -69,7 +69,7 @@ const HistoryCard = ({
                 href={
                   selectedNetwork === 'casper-test'
                     ? `https://testnet.cspr.live/deploy/${id}`
-                    : `https://cspr.live/deploy/${id}`
+                    : `https://casperstats.io/tx/${id}`
                 }
                 target="_blank"
                 rel="noreferrer"
