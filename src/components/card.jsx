@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, Col, Row, Select } from 'antd';
+import { Card, Col, Row, Select, Spin } from 'antd';
 import './components.global.scss';
 
 const { Option } = Select;
 
-const WalletCard = ({ tag, title, amount, selector, rewards }) => {
-  const handleChange = (value) => {
-  };
+const WalletCard = ({ tag, title, amount, selector, rewards, loading }) => {
+  const handleChange = (value) => {};
   return (
     <div className="site-card-wrapper">
       <Row>
@@ -15,7 +14,20 @@ const WalletCard = ({ tag, title, amount, selector, rewards }) => {
           <Card bordered={false} className="wallet-card">
             <div className="wallet-card-tag">{tag}</div>
             <div className="wallet-card-display-flex">
-              <div className="wallet-card-title">{title}</div>
+              {loading === true && (
+                <Spin
+                  spinning
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                />
+              )}
+              {loading === false && (
+                <div className="wallet-card-title">{title}</div>
+              )}
               {selector && (
                 <Select
                   defaultValue="CSPR"
@@ -29,7 +41,9 @@ const WalletCard = ({ tag, title, amount, selector, rewards }) => {
               )}
             </div>
             <div className="wallet-card-display-flex" style={{ marginTop: 15 }}>
-              <div className="wallet-card-amount">{amount}</div>
+              {loading === false && (
+                <div className="wallet-card-amount">{amount}</div>
+              )}
               {rewards && <div className="wallet-card-rewards">{rewards}</div>}
             </div>
           </Card>
