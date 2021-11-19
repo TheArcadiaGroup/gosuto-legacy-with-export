@@ -36,6 +36,7 @@ const Home = () => {
   const [changePercentage, setChangePercentage] = useState(0);
   const [currentStake, setCurrentStake] = useState(0);
   const [currentStakeValue, setCurrentStakeValue] = useState(0);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function getAccountInformation() {
       try {
@@ -75,6 +76,7 @@ const Home = () => {
         setChangePercentage(casperPriceChangePercentage24h.usd);
         setHoldingsValue(price * accBalance);
         setTotalStaked(await getTotalStaked(selectedNetwork));
+        setLoading(false);
       } catch (error) {
         notification['error']({
           message: 'Error',
@@ -98,6 +100,7 @@ const Home = () => {
             tag="Current balance"
             title={`${balance.toLocaleString()} CSPR`}
             amount={holdingsValue.toLocaleString() + ' USD'}
+            loading={loading}
           />
         </Col>
         <Col>
@@ -108,6 +111,7 @@ const Home = () => {
             tag="Current stake"
             title={`${currentStake.toLocaleString()} CSPR`}
             amount={currentStakeValue.toLocaleString() + ' USD'}
+            loading={loading}
             // rewards="0.5050 CSPR Rewards"
           />
         </Col>
@@ -133,6 +137,7 @@ const Home = () => {
                 ? changePercentage.toLocaleString() + '%'
                 : '+ ' + changePercentage.toLocaleString() + '%'
             }
+            loading={loading}
           />
         </Col>
         <Col md={24} lg={24} xl={15} xxl={9}>
@@ -143,6 +148,7 @@ const Home = () => {
               selectedNetwork == 'casper' &&
               ((totalStaked / totalSupply) * 100).toLocaleString() + '%'
             }
+            loading={loading}
           />
         </Col>
         <Col md={24} lg={24} xl={24} xxl={10}>
@@ -154,6 +160,7 @@ const Home = () => {
               totalSupply.toLocaleString()
             }
             amount={formatter.format(casperPrice * circulatingSupply) + ' USD'}
+            loading={loading}
           />
         </Col>
       </Row>
