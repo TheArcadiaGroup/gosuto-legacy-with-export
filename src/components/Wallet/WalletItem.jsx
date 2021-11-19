@@ -743,7 +743,7 @@ WalletItem.propTypes = {
   amount: PropTypes.string.isRequired,
   secondaryTitle: PropTypes.string,
   secondaryAmount: PropTypes.string,
-  casperPrice: PropTypes.string,
+  casperPrice: PropTypes.number,
 };
 WalletItem.defaultProps = {
   secondaryTitle: '',

@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import WalletCard from './components/card';
-import Charts from './components/Charts';
+// import Charts from './components/Charts';
 
 // images
 import vault from '../assets/icons/vault-logo.png';
-import swapLogo from '../assets/icons/swap-button.svg';
+// import swapLogo from '../assets/icons/swap-button.svg';
 // styles
 import './App.global.scss';
 import {
@@ -12,9 +12,7 @@ import {
   getCasperMarketInformation,
   getLatestBlockInfo,
   getTotalStaked,
-  getTotalStakedSum,
   getUserDelegatedAmount,
-  getWalletBalancesSum,
 } from './services/casper';
 import { Card, Col, notification, Row } from 'antd';
 import { CasperServiceByJsonRPC } from 'casper-client-sdk';
@@ -78,6 +76,7 @@ const Home = () => {
         setTotalStaked(await getTotalStaked(selectedNetwork));
         setLoading(false);
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
         notification['error']({
           message: 'Error',
           description: error,
@@ -99,7 +98,7 @@ const Home = () => {
           <WalletCard
             tag="Current balance"
             title={`${balance.toLocaleString()} CSPR`}
-            amount={holdingsValue.toLocaleString() + ' USD'}
+            amount={`${holdingsValue.toLocaleString()} USD`}
             loading={loading}
           />
         </Col>
@@ -110,7 +109,7 @@ const Home = () => {
           <WalletCard
             tag="Current stake"
             title={`${currentStake.toLocaleString()} CSPR`}
-            amount={currentStakeValue.toLocaleString() + ' USD'}
+            amount={`${currentStakeValue.toLocaleString()} USD`}
             loading={loading}
             // rewards="0.5050 CSPR Rewards"
           />
@@ -131,11 +130,11 @@ const Home = () => {
         <Col md={24} lg={24} xl={8} xxl={4}>
           <WalletCard
             tag="CSPR price"
-            title={casperPrice.toLocaleString() + ' USD'}
+            title={`${casperPrice.toLocaleString()} USD`}
             amount={
               changePercentage.toString().startsWith('-')
-                ? changePercentage.toLocaleString() + '%'
-                : '+ ' + changePercentage.toLocaleString() + '%'
+                ? `${changePercentage.toLocaleString()}%`
+                : `+ ${changePercentage.toLocaleString()}%`
             }
             loading={loading}
           />
@@ -143,10 +142,11 @@ const Home = () => {
         <Col md={24} lg={24} xl={15} xxl={9}>
           <WalletCard
             tag="Total Stake Bonded"
-            title={totalStaked.toLocaleString() + ' CSPR'}
+            title={`${totalStaked.toLocaleString()} CSPR`}
             amount={
-              selectedNetwork == 'casper' &&
-              ((totalStaked / totalSupply) * 100).toLocaleString() + '%'
+              selectedNetwork == 'casper'
+                ? `${((totalStaked / totalSupply) * 100).toLocaleString()}%`
+                : '0%'
             }
             loading={loading}
           />
@@ -154,12 +154,8 @@ const Home = () => {
         <Col md={24} lg={24} xl={24} xxl={10}>
           <WalletCard
             tag="Circulating Supply"
-            title={
-              circulatingSupply.toLocaleString() +
-              ' / ' +
-              totalSupply.toLocaleString()
-            }
-            amount={formatter.format(casperPrice * circulatingSupply) + ' USD'}
+            title={`${circulatingSupply.toLocaleString()} / ${totalSupply.toLocaleString()}`}
+            amount={`${formatter.format(casperPrice * circulatingSupply)} USD`}
             loading={loading}
           />
         </Col>
