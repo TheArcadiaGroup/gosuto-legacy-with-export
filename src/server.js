@@ -110,7 +110,7 @@ server.post('/delegate', async function (req, res) {
       network
     );
     // const payment = DeployUtil.standardPayment(2500010000);
-    const payment = DeployUtil.standardPayment(3000000000);
+    const payment = DeployUtil.standardPayment(5000000000);
     const args = RuntimeArgs.fromMap({
       delegator: CLValue.publicKey(keyPair.publicKey),
       validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
