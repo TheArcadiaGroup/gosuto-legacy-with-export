@@ -112,7 +112,7 @@ function AddNewWallet(props) {
         accHex = edKey.accountHex();
         const publicKey = CLPublicKey.fromHex(edKey.accountHex());
         let accHash;
-        accHex = publicKey.toAccountHex();
+        accHex = publicKey.toHex();
         accHash = publicKey.toAccountHash();
         accHash = Buffer.from(accHash).toString('hex');
         const privateKeyLocal = Buffer.from(edKey.privateKey).toString('hex');

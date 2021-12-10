@@ -41,7 +41,7 @@ function ImportFromSeed(props) {
       accHex = edKey.accountHex();
       const publicKey = CLPublicKey.fromHex(edKey.accountHex()).toBytes();
       let accHash;
-      accHex = publicKey.toAccountHex();
+      accHex = publicKey.toHex();
       accHash = publicKey.toAccountHash();
       accHash = Buffer.from(accHash).toString('hex');
       const privateKey = Buffer.from(edKey.privateKey).toString('hex');

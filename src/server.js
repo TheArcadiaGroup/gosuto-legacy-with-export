@@ -21,7 +21,7 @@ server.use(express.json());
 
 const getEndpointByNetwork = (network) => {
   if (network == 'casper') {
-    return 'http://18.221.174.26:7777/rpc';
+    return 'http://mainnet.gosuto.io:7777/rpc';
   }
   return 'http://testnet.gosuto.io:7777/rpc';
 };
