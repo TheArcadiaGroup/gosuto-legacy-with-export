@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { Tag, Button, Input, notification } from 'antd';
 import Datastore from 'nedb-promises';
 import TextArea from 'antd/lib/input/TextArea';
-import { Keys, PublicKey } from 'casper-client-sdk';
 import nacl from 'tweetnacl';
 
 import { remote } from 'electron';
@@ -12,6 +11,7 @@ import { remote } from 'electron';
 import WalletContext from '../../contexts/WalletContext';
 import vault from '../../../assets/icons/vault-logo.png';
 import Modal from './Modal';
+import { CLPublicKey, Keys } from 'casper-js-sdk';
 // mnemonic phrase package
 const bip39 = require('bip39');
 
@@ -110,9 +110,7 @@ function AddNewWallet(props) {
         );
         const edKey = new Keys.Ed25519(keyPairFromSeed);
         accHex = edKey.accountHex();
-        const publicKey = PublicKey.fromBytes(
-          PublicKey.fromHex(edKey.accountHex()).toBytes()
-        ).value();
+        const publicKey = CLPublicKey.fromHex(edKey.accountHex());
         let accHash;
         accHex = publicKey.toAccountHex();
         accHash = publicKey.toAccountHash();

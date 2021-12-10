@@ -3,7 +3,6 @@
 import React, { useState, useContext } from 'react';
 import { Button, Input, notification } from 'antd';
 import path from 'path';
-import { Keys } from 'casper-client-sdk';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import { readFileSync } from 'fs';
@@ -12,6 +11,7 @@ import WalletContext from '../../contexts/WalletContext';
 import { parseAlgorithm } from '../../utils/casper';
 import vault from '../../../assets/icons/vault-logo.png';
 import Modal from './Modal';
+import { Keys } from 'casper-js-sdk';
 
 const bip39 = require('bip39');
 

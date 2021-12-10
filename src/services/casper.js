@@ -1,18 +1,13 @@
 import blake from 'blakejs';
 import { concat } from '@ethersproject/bytes';
 import axios from 'axios';
+import {
+  BalanceServiceByJsonRPC,
+  CasperServiceByJsonRPC,
+  CLPublicKey,
+} from 'casper-js-sdk';
 import { casperDelegationContractHexCode } from '../utils/casper';
 
-const {
-  CasperServiceByJsonRPC,
-  CasperClient,
-  PublicKey,
-  DeployUtil,
-  Keys,
-  RuntimeArgs,
-  CLValue,
-  BalanceServiceByJsonRPC,
-} = require('casper-client-sdk');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const cp = require('child_process');
@@ -37,7 +32,7 @@ export const getAccountBalance = async (
     const balanceService = new BalanceServiceByJsonRPC(casperService);
     const balance = await balanceService.getAccountBalance(
       latestBlockHash,
-      PublicKey.fromHex(publicKey)
+      CLPublicKey.fromHex(publicKey)
     );
     // casperService.acco
     // const stateRootHash = await casperService.getStateRootHash(latestBlockHash);

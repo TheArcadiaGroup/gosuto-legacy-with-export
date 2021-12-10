@@ -1,13 +1,10 @@
 const {
   CasperServiceByJsonRPC,
   CasperClient,
-  PublicKey,
+  CLPublicKey,
   DeployUtil,
   Keys,
-  RuntimeArgs,
-  CLValue,
-  BalanceServiceByJsonRPC,
-} = require('casper-client-sdk');
+} = require('casper-js-sdk');
 
 async function transfer(privateKey, to, amount, network) {
   try {
@@ -47,7 +44,7 @@ async function transfer(privateKey, to, amount, network) {
       network
     );
 
-    const toPublicKey = PublicKey.fromHex(to);
+    const toPublicKey = CLPublicKey.fromHex(to);
 
     const session = DeployUtil.ExecutableDeployItem.newTransfer(
       amount,
@@ -83,9 +80,7 @@ async function main() {
     // privateKey.push(
     //   parseInt(element.substr(element.indexOf(':') + 1, element.length))
     // );
-    privateKey.push(
-     element
-    );
+    privateKey.push(element);
   }
   // privateKey = Uint8Array.from(privateKey);
   const res = await transfer(myArgs[0], myArgs[1], myArgs[2], myArgs[3]);

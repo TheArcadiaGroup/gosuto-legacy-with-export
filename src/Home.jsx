@@ -15,7 +15,6 @@ import {
   getUserDelegatedAmount,
 } from './services/casper';
 import { Card, Col, notification, Row } from 'antd';
-import { CasperServiceByJsonRPC } from 'casper-client-sdk';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
 import WalletContext from './contexts/WalletContext';

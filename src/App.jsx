@@ -11,14 +11,9 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 
-// Pages
-import {
-  CasperClient,
-  CasperServiceByJsonRPC,
-  PublicKey,
-} from 'casper-client-sdk';
 import { mnemonicToSeed } from 'bip39';
 import Datastore from 'nedb-promises';
+import { CasperServiceByJsonRPC } from 'casper-js-sdk';
 import Home from './Home';
 import WalletView from './Views/WalletView';
 import ERCView from './Views/ERCView';
@@ -37,7 +32,7 @@ import NetworkContext from './contexts/NetworkContext';
 import DataContext from './contexts/DataContext';
 import GeneralModal from './components/GeneralModal';
 import SignDeployModal from './components/SignDeployModal';
-// import { signDeploy } from 'casper-client-sdk/dist/lib/DeployUtil';
+
 const { ipcRenderer, remote } = require('electron');
 
 const { Header, Content, Sider } = Layout;

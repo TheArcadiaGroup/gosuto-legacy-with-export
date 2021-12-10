@@ -4,10 +4,10 @@
 import React, { useState, useContext } from 'react';
 import { Button, Input, notification } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
-import { Keys, PublicKey } from 'casper-client-sdk';
 import nacl from 'tweetnacl';
 import Datastore from 'nedb-promises';
 import { remote } from 'electron';
+import { CLPublicKey, Keys } from 'casper-js-sdk';
 import WalletContext from '../../contexts/WalletContext';
 import vault from '../../../assets/icons/vault-logo.png';
 import Modal from './Modal';
@@ -39,9 +39,7 @@ function ImportFromSeed(props) {
       );
       const edKey = new Keys.Ed25519(keyPairFromSeed);
       accHex = edKey.accountHex();
-      const publicKey = PublicKey.fromBytes(
-        PublicKey.fromHex(edKey.accountHex()).toBytes()
-      ).value();
+      const publicKey = CLPublicKey.fromHex(edKey.accountHex()).toBytes();
       let accHash;
       accHex = publicKey.toAccountHex();
       accHash = publicKey.toAccountHash();

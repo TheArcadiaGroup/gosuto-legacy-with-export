@@ -1,18 +1,21 @@
 const express = require('express');
 
 const server = express();
+
+const { default: axios } = require('axios');
+const {
+  casperDelegationContractHexCode,
+  erc20MintableContractCode,
+} = require('./utils/casper');
 const {
   CasperServiceByJsonRPC,
-  CasperClient,
-  PublicKey,
-  DeployUtil,
   Keys,
+  DeployUtil,
   RuntimeArgs,
   CLValue,
-  BalanceServiceByJsonRPC,
-} = require('casper-client-sdk');
-const { default: axios } = require('axios');
-const { casperDelegationContractHexCode, erc20MintableContractCode } = require('./utils/casper');
+  CLPublicKey,
+} = require('casper-js-sdk');
+const { CasperClient } = require('casper-js-sdk');
 
 server.use(express.json());
 
@@ -59,7 +62,7 @@ server.post('/transfer', async function (req, res) {
       ttl
     );
 
-    const toPublicKey = PublicKey.fromHex(to);
+    const toPublicKey = CLPublicKey.fromHex(to);
 
     const session = DeployUtil.ExecutableDeployItem.newTransfer(
       amount,
@@ -113,7 +116,7 @@ server.post('/delegate', async function (req, res) {
     const payment = DeployUtil.standardPayment(3000000000);
     const args = RuntimeArgs.fromMap({
       delegator: CLValue.publicKey(keyPair.publicKey),
-      validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+      validator: CLValue.publicKey(CLPublicKey.fromHex(validatorPublicKey)),
       amount: CLValue.u512(amountToDelegate),
     });
     let contractHash =
@@ -173,7 +176,7 @@ server.post('/undelegate', async function (req, res) {
     const payment = DeployUtil.standardPayment(10000);
     const args = RuntimeArgs.fromMap({
       delegator: CLValue.publicKey(keyPair.publicKey),
-      validator: CLValue.publicKey(PublicKey.fromHex(validatorPublicKey)),
+      validator: CLValue.publicKey(CLPublicKey.fromHex(validatorPublicKey)),
       amount: CLValue.u512(amountToUndelegate),
     });
     let contractHash =

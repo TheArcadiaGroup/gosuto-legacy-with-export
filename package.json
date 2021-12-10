@@ -244,7 +244,7 @@
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
     "body-parser": "^1.19.0",
-    "casper-client-sdk": "^1.4.2",
+    "casper-js-sdk": "^2.7.3",
     "coingecko-api": "^1.0.10",
     "electron": "^11.0.1",
     "electron-debug": "^3.1.0",
