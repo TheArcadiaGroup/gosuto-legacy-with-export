@@ -99,7 +99,6 @@
       "private": true,
       "owner": "TheArcadiaGroup",
       "repo": "gosuto-desktop",
-      "token": "GITHUB_TOKEN_HERE",
       "vPrefixedTagName": true,
       "publishAutoUpdate": true,
       "releaseType": "release"
