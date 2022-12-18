@@ -11,11 +11,12 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, dialog, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import server from './server';
+import fs from 'fs';
 
 let port;
 const s = server.listen(0, function () {
@@ -134,6 +135,10 @@ const createWindow = async () => {
       mainWindow.show();
       mainWindow.focus();
     }
+  });
+
+  ipcMain.on('wallets-export-json', (_event: any, data: string) => {
+    fs.writeFileSync(path.join(app.getPath('userData'), '/wallets.json'), data);
   });
 
   mainWindow.on('closed', () => {

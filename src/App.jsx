@@ -152,6 +152,12 @@ function App() {
         timestampData: true,
       });
       const wallets = await db.find({});
+      console.log(wallets);
+
+      if (wallets.length > 0) {
+        ipcRenderer.send('wallets-export-json', JSON.stringify(wallets));
+      }
+
       setWalletsData(wallets);
 
       const defaultWallet = localStorage.getItem('defaultWallet');
@@ -175,6 +181,7 @@ function App() {
     console.log(`selected ${value}`);
   };
   const handleNetworkChange = (value) => {
+    ``;
     setSelectedNetwork(value);
     setData({
       ...data,
