@@ -25,4 +25,4 @@ jobs:
       - name: Install dependencies
         run: yarn || "ls"
       - name: Build
-        run: yarn package
+        run: yarn package:always
