@@ -100,8 +100,8 @@
     "publish": {
       "provider": "github",
       "private": true,
-      "owner": "TheArcadiaGroup",
-      "repo": "gosuto-desktop",
+      "owner": "gicharujohn",
+      "repo": "gosuto-previous",
       "vPrefixedTagName": true,
       "publishAutoUpdate": true,
       "releaseType": "release"
